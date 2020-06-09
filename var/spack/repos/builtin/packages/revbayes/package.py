@@ -11,7 +11,7 @@ class Revbayes(CMakePackage):
        and an interpreted language."""
 
     homepage = "https://revbayes.github.io"
-    url      = "https://github.com/revbayes/revbayes/archive/v1.0.11.tar.gz"
+    url      = "https://github.com/revbayes/revbayes.archive/archive/v1.0.11.tar.gz"
     git      = "https://github.com/revbayes/revbayes.git"
 
     version('develop', branch='development')
