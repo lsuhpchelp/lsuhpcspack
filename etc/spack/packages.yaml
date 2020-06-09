@@ -1,0 +1,409 @@
+## -------------------------------------------------------------------------
+# This file controls default concretization preferences for Spack.
+#
+# Settings here are versioned with Spack and are intended to provide
+# sensible defaults out of the box. Spack maintainers should edit this
+# file to keep it current.
+#
+# Users can override these settings by editing the following files.
+#
+# Per-spack-instance settings (overrides defaults):
+#   $SPACK_ROOT/etc/spack/packages.yaml
+#
+# Per-user settings (overrides default and site settings):
+#   ~/.spack/packages.yaml
+# -------------------------------------------------------------------------
+packages:
+  all:
+    compiler: [intel@19.0.5, gcc@9.3.0, pgi]
+    target: [cascadelake]
+    providers:
+      awk: [gawk]
+      blas: [intel-mkl]
+      lapack: [intel-mkl]
+      scalapack: [intel-mkl]
+      daal: [intel-daal]
+      elf: [elfutils]
+      golang: [gcc]
+      ipp: [intel-ipp]
+      java: [jdk]
+      mkl: []
+      mpe: [mpe2]
+      mpi: [mvapich2,mpich,openmpi]
+      opencl: [pocl]
+      openfoam: [openfoam-com, openfoam-org, foam-extend]
+      pil: [py-pil,py-pillow]
+      szip: [libszip, libaec]
+      tbb: [intel-tbb]
+      jpeg: [libjpeg-turbo, libjpeg]
+  mvapich2:
+    variants: process_managers=slurm
+  petsc:
+    variants: +fftw +mumps +suite-sparse
+  fftw:
+    variants: +openmp
+  hdf5:
+    variants: +threadsafe
+  suite-sparse:
+    variants: +openmp
+  superlu-dist:
+    variants: +openmp
+  cp2k:
+    variants: ~libxc blas=mkl
+  scotch:
+    variants: +metis
+  hmmer:
+    variants: ~mpi
+  readline:
+    compiler: [gcc,intel]
+    paths: 
+      readline@6.2.10 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  ncurses:
+    compiler: [gcc,intel]
+    paths:
+      ncurses@5.9 ~termlib arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  m4:
+    compiler: [gcc,intel]
+    paths:
+      m4@1.4.16 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  autoconf:
+    compiler: [gcc,intel]
+    paths:
+      autoconf@2.69 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  automake:
+    compiler: [gcc,intel]
+    paths:
+      automake@1.13.4 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  binutils:
+    compiler: [gcc,intel]
+    paths:
+      binutils@2.27 ~nls +libiberty +headers arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  bzip2:
+    compiler: [gcc,intel]
+    paths:
+      bzip2@1.0.6 arch=linux-rhel7-cascadelake: /usr/bin
+  cairo:
+    compiler: [gcc,intel]
+    paths:
+      cairo@1.14.8 +pdf ~X +gobject arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+#  cmake:
+#    compiler: [gcc,intel]
+#    paths:
+#      cmake@2.8.12: /usr/bin
+#    buildable: False
+  findutils:
+    compiler: [gcc,intel]
+    paths:
+      findutils@4.5.11: /usr/bin
+    buildable: False
+  flex:
+    compiler: [gcc,intel]
+    paths:
+      flex@2.5.37 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  freetype:
+    compiler: [gcc,intel]
+    paths:
+      freetype@2.4.11 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  gettext:
+    compiler: [gcc,intel]
+    paths:
+      gettext@0.19.8.1 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  gdbm:
+    compiler: [gcc,intel]
+    paths:
+      gdbm@1.10 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  glib:
+    compiler: [gcc,intel]
+    paths:
+      glib@2.54.2 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  gmp:
+    compiler: [gcc,intel]
+    paths:
+      gmp@6.0.0 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  gnutls:
+    compiler: [gcc,intel]
+    paths:
+      gnutls@3.3.26 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  hwloc:
+    compiler: [gcc,intel]
+    variants: ~pci
+#    paths:
+#      hwloc@1.11.8 arch=linux-rhel7-cascadelake: /usr/bin
+  jdk:
+    paths:
+      jdk@1.8.0_161 arch=linux-rhel7-cascadelake: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.161-2.b14.el7.cascadelake
+    buildable: False
+  libdwarf:
+    compiler: [gcc,intel]
+    paths:
+      libdwarf@20130207 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libelf:
+    compiler: [gcc,intel]
+    paths:
+      libelf@0.170 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libffi:
+    compiler: [gcc,intel]
+    paths:
+      libffi@3.0.13 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libtool:
+    compiler: [gcc,intel]
+    paths:
+      libtool@2.4.2 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  libpng:
+    compiler: [gcc,intel]
+    paths:
+      libpng@1.5.13 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  libjpeg-turbo:
+    compiler: [gcc,intel]
+    paths:
+      libjpeg-turbo@1.2.90 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  libtiff:
+    compiler: [gcc,intel]
+    paths:
+      libtiff@4.0.3 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  libxt:
+    compiler: [gcc,intel]
+    paths:
+      libxt@1.1.5 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+#  lua:
+#    compiler: [gcc,intel]
+#    paths:
+#      lua@5.1.4 arch=linux-rhel7-cascadelake: /usr
+#    buildable: False
+  lz4:
+    compiler: [gcc,intel]
+    paths:
+      lz4@1.7.5 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  lzo:
+    compiler: [gcc,intel]
+    paths:
+      lzo@2.06 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  mesa:
+    compiler: [gcc,intel]
+    paths:
+      mesa@17.2.3 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+#  mpc:
+#    compiler: [gcc,intel]
+#    paths:
+#      mpc@1.0.1 arch=linux-rhel7-cascadelake: /usr/lib64
+#    buildable: False
+  mpfr:
+    compiler: [gcc,intel]
+    paths:
+      mpfr@3.1.1 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  nettle:
+    paths:
+      nettle@2.7.1 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  papi:
+    compiler: [gcc,intel]
+    paths:
+      papi@5.2.0 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  bison:
+    compiler: [gcc,intel]
+    paths:
+      bison@3.0.4 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  curl:
+    compiler: [gcc,intel]
+    paths:
+      curl@7.29.0 arch=linux-rhel7-cascadelake: /usr/bin
+    buildable: False
+  openssl:
+    compiler: [gcc,intel]
+    paths:
+      openssl@1.0.2k arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  pango:
+    compiler: [gcc,intel]
+    paths:
+      pango@1.40.4 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  python:
+    paths:
+      python@2.7.5 arch=linux-rhel7-cascadelake: /usr
+  qt:
+    compiler: [gcc,intel]
+    paths:
+      qt@4.8.7 +opengl arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  rdma-core:
+    compiler: [gcc,intel]
+    paths:
+      rdma-core@20 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  sqlite:
+    compiler: [gcc,intel]
+    paths:
+      sqlite@3.7.17 -fts arch=linux-rhel7-cascadelake: /usr/bin
+#    buildable: False
+  subversion:
+    compiler: [gcc,intel]
+    paths:
+      subversion@1.7.14 arch=linux-rhel7-cascadelake: /usr/bin
+    buildable: False
+  tar:
+    compiler: [gcc,intel]
+    paths:
+      tar@1.26 arch=linux-rhel7-cascadelake: /bin
+    buildable: False
+  tcl:
+    compiler: [gcc,intel]
+    paths:
+      tcl@8.5 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  tcsh:
+    paths:
+      tcsh@6.18.01 arch=linux-rhel7-cascadelake: /bin
+    buildable: False
+  tk:
+    compiler: [gcc,intel]
+    paths:
+      tk@8.5 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  zlib:
+#    compiler: [gcc,intel]
+    paths:
+      zlib@1.2.7 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  expat:
+    compiler: [gcc,intel]
+    paths:
+      expat@2.1.0 arch=linux-rhel7-cascadelake: /lib64
+    buildable: False
+  libarchive:
+    compiler: [gcc,intel]
+    paths:
+      libarchive@3.1.2 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libnl:
+    compiler: [gcc,intel]
+    paths:
+      libnl@1.1.4: /lib64
+    buildable: False
+  libnl3:
+    compiler: [gcc,intel]
+    paths:
+      libnl3@3.2.28: /usr/lib64
+    buildable: False
+  libpciaccess:
+    compiler: [gcc,intel]
+    paths:
+      libpciaccess@0.14 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libunistring:
+    compiler: [gcc,intel]
+    paths:
+      libunistring@0.9.3 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libx11:
+    compiler: [gcc,intel]
+    paths:
+      libx11@1.6.5 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  libxml2:
+    compiler: [gcc,intel]
+    paths:
+      libxml2@2.9.1 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  libxpm:
+    compiler: [gcc,intel]
+    paths:
+      libxpm@3.5.12 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  numactl:
+    compiler: [gcc,intel]
+    paths:
+      numactl@2.0.9 arch=linux-rhel7-cascadelake: /usr/bin
+    buildable: False
+  pkg-config:
+    compiler: [gcc,intel]
+    paths:
+      pkg-config@0.27.1 arch=linux-rhel7-cascadelake: /usr/bin
+    buildable: False
+  pcre:
+    compiler: [gcc,intel]
+    paths:
+      pcre@8.32 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  pcre2:
+    compiler: [gcc,intel]
+    paths:
+      pcre2@10.23 arch=linux-rhel7-cascadelake: /usr/lib64
+    buildable: False
+  perl:
+    compiler: [gcc,intel]
+    paths:
+      perl@5.16.3 arch=linux-rhel7-cascadelake: /usr
+    buildable: False
+  swig:
+    compiler: [gcc,intel]
+    paths:
+      swig@2.0.10 arch=linux-rhel7-cascadelake: /usr/share/swig/2.0.10
+    buildable: False
+  xz:
+    compiler: [gcc,intel]
+    paths:
+      xz@5.2.2 arch=linux-rhel7-cascadelake: /usr/bin
+    buildable: False
+  zip:
+    paths:
+      zip@3.0 arch=linux-rhel7-cascadelake: /usr/bin
+    buildable: False
+  intel:
+    paths:
+      intel@19.0.5 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/
+    buildable: False
+  intel-mkl:
+    paths:
+      intel-mkl@19.0.5 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
+    buildable: False
+  intel-tbb:
+    paths:
+      intel-tbb@2019.5 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
+    buildable: False
+#  intel-mpi:
+#    paths:
+#      intel-mpi@2019.5.281 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
+#    modules: 
+#      intel-mpi@2019.5.281: intel-mpi/2019.5.281
+#    buildable: False
+  intel-parallel-studio:
+    paths:
+      intel-parallel-stuido@cluster.2019.5 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
+    buildable: False
+  netlib-scalapack:
+    buildable: False
+  openblas:
+    buildable: False
+  slurm:
+    paths:
+      slurm@19.05.0 arch=linux-rhel7-cascadelake: /usr/include
+    buildable: False

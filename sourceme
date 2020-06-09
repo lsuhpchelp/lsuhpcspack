@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# For Module
+MODULEROOT=/usr/local/packages/Modules
+export PATH=$PATH:$MODULEROOT/default/bin
+export MODULEPATH=$MODULEROOT/modulefiles/apps:$MODULEPATH
+. $MODULEROOT/default/init/bash
+
+# For Spack
+. /usr/local/packages/spack/share/spack/setup-env.sh
