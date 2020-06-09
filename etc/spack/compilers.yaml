@@ -2,7 +2,7 @@ compilers:
 - compiler:
     environment: {}
     extra_rpaths: ["/usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64"]
-    flags: { -O3 }
+    flags: {}
     modules: [intel/19.0.5]
     operating_system: rhel7
     paths:
