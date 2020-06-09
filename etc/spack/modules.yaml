@@ -62,7 +62,7 @@ modules:
       - 'libxc'
       - 'libxt'
       - 'libxsmm'
-      - 'libzmg'
+      - 'libzmq'
       - 'numactl'
       - 'otf2'
       - 'pango'
