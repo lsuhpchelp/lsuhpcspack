@@ -54,6 +54,8 @@ packages:
     variants: +metis
   hmmer:
     variants: ~mpi
+  openmpi:
+    variants: +thread_multiple fabrics=auto
   readline:
     compiler: [gcc,intel]
     paths: 
