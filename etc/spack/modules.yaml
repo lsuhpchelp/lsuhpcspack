@@ -109,6 +109,7 @@ modules:
         '+debug': debug
         '+cuda': cuda
         '+kokkos': kokkos
+        'process_managers=hydra': hydra
       environment:
         set:
           '${PACKAGE}ROOT': '${PREFIX}'
