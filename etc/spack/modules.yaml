@@ -110,7 +110,7 @@ modules:
         '+cuda': cuda
         '+kokkos': kokkos
         'process_managers=hydra': hydra
-      environment:
+#      environment:
 #        set:
 #          '${PACKAGE}ROOT': '${PREFIX}'
 #    cuda:
