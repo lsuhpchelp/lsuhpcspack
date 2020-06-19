@@ -111,8 +111,8 @@ modules:
         '+kokkos': kokkos
         'process_managers=hydra': hydra
       environment:
-        set:
-          '${PACKAGE}ROOT': '${PREFIX}'
+#        set:
+#          '${PACKAGE}ROOT': '${PREFIX}'
 #    cuda:
 #      naming_scheme: '${PACKAGE}/${VERSION}'
   prefix_inspections:
