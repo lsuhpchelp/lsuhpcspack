@@ -112,7 +112,7 @@ modules:
         'process_managers=hydra': hydra
       environment:
         set:
-          '${PACKAGE}ROOT': '${PREFIX}'
+#          '${PACKAGE}ROOT': '${PREFIX}'
 #    cuda:
 #      naming_scheme: '${PACKAGE}/${VERSION}'
   prefix_inspections:
