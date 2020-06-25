@@ -40,6 +40,8 @@ packages:
     variants: process_managers=slurm
   petsc:
     variants: +fftw +mumps +suite-sparse
+  tau:
+    variants: +mpi +openmp +phase +comm +opari
   fftw:
     variants: +openmp
   hdf5:
