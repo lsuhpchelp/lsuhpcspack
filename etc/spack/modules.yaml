@@ -29,6 +29,7 @@ modules:
       - 'readline'
       - 'ncurses'
       - 'm4'
+      - 'binutils'
       - 'cairo'
       - 'charmpp'
       - 'elpa'
