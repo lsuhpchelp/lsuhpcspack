@@ -18,7 +18,7 @@ class Amber(Package, CudaPackage):
        http://spack.readthedocs.io/en/latest/mirrors.html"""
 
     homepage = "http://ambermd.org/"
-    url      = "file://{0}/Amber18.tar.bz2".format(os.getcwd())
+    url      = "file:///usr/local/packages/sources/Amber18.tar.bz2".format(os.getcwd())
     maintainers = ['hseara']
 
     version('18', sha256='2060897c0b11576082d523fb63a51ba701bc7519ff7be3d299d5ec56e8e6e277')
@@ -32,7 +32,7 @@ class Amber(Package, CudaPackage):
     for ver, ambertools_ver, checksum in resources:
         resource(when='@{0}'.format(ver),
                  name='AmberTools',
-                 url='file://usr/local/packages/sources/AmberTools{1}.tar.bz2'.format(os.getcwd(),
+                 url='file:///usr/local/packages/sources/AmberTools{1}.tar.bz2'.format(os.getcwd(),
                                                                ambertools_ver),
                  sha256=checksum,
                  destination='',
