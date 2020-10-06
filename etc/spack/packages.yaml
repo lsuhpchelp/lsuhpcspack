@@ -112,11 +112,11 @@ packages:
     paths:
       flex@2.5.37 arch=linux-rhel7-cascadelake: /usr
     buildable: False
-  freetype:
-    compiler: [gcc,intel]
-    paths:
-      freetype@2.4.11 arch=linux-rhel7-cascadelake: /usr/lib64
-    buildable: False
+#  freetype:
+#    compiler: [gcc,intel]
+#    paths:
+#      freetype@2.4.11 arch=linux-rhel7-cascadelake: /usr/lib64
+#    buildable: False
   gettext:
     compiler: [gcc,intel]
     paths:
