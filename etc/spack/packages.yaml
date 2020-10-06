@@ -113,11 +113,11 @@ packages:
 #    paths:
 #      freetype@2.4.11 arch=linux-rhel7-cascadelake: /usr/lib64
 #    buildable: False
-  gettext:
-    compiler: [gcc,intel]
-    paths:
-      gettext@0.19.8.1 arch=linux-rhel7-cascadelake: /usr
-    buildable: False
+#  gettext:
+#    compiler: [gcc,intel]
+#    paths:
+#      gettext@0.19.8.1 arch=linux-rhel7-cascadelake: /usr/lib64
+#    buildable: False
   gdbm:
     compiler: [gcc,intel]
     paths:
