@@ -27,3 +27,6 @@ lib/spack/spack/test/.cache
 *.in.log
 *.out.log
 *.orig
+packages/
+linux-rhel7-cascadelake/
+

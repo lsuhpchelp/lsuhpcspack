@@ -40,6 +40,8 @@ packages:
     variants: process_managers=slurm
   petsc:
     variants: +fftw +mumps +suite-sparse
+  tau:
+    variants: +mpi +openmp +phase +comm +opari
   fftw:
     variants: +openmp
   hdf5:
@@ -54,6 +56,8 @@ packages:
     variants: +metis
   hmmer:
     variants: ~mpi
+  openmpi:
+    variants: +thread_multiple fabrics=auto
   readline:
     compiler: [gcc,intel]
     paths: 
@@ -145,7 +149,7 @@ packages:
 #      hwloc@1.11.8 arch=linux-rhel7-cascadelake: /usr/bin
   jdk:
     paths:
-      jdk@1.8.0_161 arch=linux-rhel7-cascadelake: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.161-2.b14.el7.cascadelake
+      jdk@1.8.0_222 arch=linux-rhel7-cascadelake: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.222.b03-1.el7.x86_64
     buildable: False
   libdwarf:
     compiler: [gcc,intel]

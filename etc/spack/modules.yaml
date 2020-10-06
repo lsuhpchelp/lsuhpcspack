@@ -29,6 +29,7 @@ modules:
       - 'readline'
       - 'ncurses'
       - 'm4'
+      - 'binutils'
       - 'cairo'
       - 'charmpp'
       - 'elpa'
@@ -36,6 +37,7 @@ modules:
       - 'gdbm'
       - 'gettext'
       - 'glib'
+      - 'htslib'
       - 'autoconf'
       - 'automake'
       - 'bzip2'
@@ -70,6 +72,7 @@ modules:
       - 'pkg-config'
       - 'qhull'
       - 'slurm'
+      - 'subversion'
       - 'expat'
       - 'libarchive'
       - 'libxml2'
@@ -109,9 +112,10 @@ modules:
         '+debug': debug
         '+cuda': cuda
         '+kokkos': kokkos
-      environment:
-        set:
-          '${PACKAGE}ROOT': '${PREFIX}'
+        'process_managers=hydra': hydra
+#      environment:
+#        set:
+#          '${PACKAGE}ROOT': '${PREFIX}'
 #    cuda:
 #      naming_scheme: '${PACKAGE}/${VERSION}'
   prefix_inspections:

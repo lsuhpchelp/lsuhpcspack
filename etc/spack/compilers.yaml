@@ -29,39 +29,26 @@ compilers:
     environment: {}
     extra_rpaths: []
     flags: {}
-    modules: [gcc/5.5.0/gcc-4.8.5]
+    modules: [gcc/8.4.0]
     operating_system: rhel7
     paths:
-      cc: /home/lyan1/spack/opt/spack/gcc/5.5.0/gcc-4.8.5/bin/gcc 
-      cxx: /home/lyan1/spack/opt/spack/gcc/5.5.0/gcc-4.8.5/bin/g++
-      f77: /home/lyan1/spack/opt/spack/gcc/5.5.0/gcc-4.8.5/bin/gfortran
-      fc: /home/lyan1/spack/opt/spack/gcc/5.5.0/gcc-4.8.5/bin/gfortran
-    spec: gcc@5.5.0
+      cc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gcc
+      cxx: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/g++ 
+      f77: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gfortran
+      fc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gfortran
+    spec: gcc@8.4.0
     target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
     flags: {}
-    modules: [gcc/6.5.0/gcc-4.8.5]
+    modules: [gcc/9.3.0]
     operating_system: rhel7
     paths:
-      cc: /home/lyan1/spack/opt/spack/gcc/6.5.0/gcc-4.8.5/bin/gcc
-      cxx: /home/lyan1/spack/opt/spack/gcc/6.5.0/gcc-4.8.5/bin/g++
-      f77: /home/lyan1/spack/opt/spack/gcc/6.5.0/gcc-4.8.5/bin/gfortran
-      fc: /home/lyan1/spack/opt/spack/gcc/6.5.0/gcc-4.8.5/bin/gfortran
-    spec: gcc@6.5.0
-    target: x86_64
-- compiler:
-    environment: {}
-    extra_rpaths: []
-    flags: {}
-    modules: [gcc/9.3.0/gcc-4.8.5]
-    operating_system: rhel7
-    paths:
-      cc: /home/lyan1/spack/opt/spack/gcc/9.3.0/7ywjt2jl/bin/gcc
-      cxx: /home/lyan1/spack/opt/spack/gcc/9.3.0/7ywjt2jl/bin/g++
-      f77: /home/lyan1/spack/opt/spack/gcc/9.3.0/7ywjt2jl/bin/gfortran
-      fc: /home/lyan1/spack/opt/spack/gcc/9.3.0/7ywjt2jl/bin/gfortran
+      cc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gcc
+      cxx: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/g++
+      f77: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
+      fc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
     spec: gcc@9.3.0
     target: x86_64
 - compiler:
