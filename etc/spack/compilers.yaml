@@ -11,7 +11,7 @@ compilers:
       f77: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/ifort
       fc: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/ifort
     spec: intel@19.0.5
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -24,7 +24,7 @@ compilers:
       f77: /usr/bin/gfortran
       fc: /usr/bin/gfortran
     spec: gcc@4.4.7
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -37,7 +37,7 @@ compilers:
       f77: /usr/local/packages/compilers/gcc/9.2.0/bin/gfortran
       fc: /usr/local/packages/compilers/gcc/9.2.0/bin/gfortran
     spec: gcc@9.2.0
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -50,7 +50,7 @@ compilers:
       f77: /ddnA/project/lyan1/projects/spack/opt/spack/gcc/6.5.0/gcc-5.5.0-ymfdusx2/gfortran
       fc: /ddnA/project/lyan1/projects/spack/opt/spack/gcc/6.5.0/gcc-5.5.0-ymfdusx2/gfortran
     spec: gcc@6.5.0
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -63,7 +63,7 @@ compilers:
       f77: /home/compilers/Intel/composer_xe_2013.0.079/bin/intel64/ifort
       fc: /home/compilers/Intel/composer_xe_2013.0.079/bin/intel64/ifort
     spec: intel@13.0.0
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -76,7 +76,7 @@ compilers:
       f77: /home/compilers/pgi/linux86-64/15.4/bin/pgf77
       fc: /home/compilers/pgi/linux86-64/15.4/bin/pgfortran
     spec: pgi@15.4
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -89,7 +89,7 @@ compilers:
       f77: /home/compilers/Intel/parallel_studio_xe_2017_update4/bin/ifort
       fc: /home/compilers/Intel/parallel_studio_xe_2017_update4/bin/ifort
     spec: intel@17.0.4
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -102,7 +102,7 @@ compilers:
       f77: /home/compilers/Intel/parallel_studio_xe_2016_update3/bin/ifort
       fc: /home/compilers/Intel/parallel_studio_xe_2016_update3/bin/ifort
     spec: intel@16.0.3
-    target: ivybridge
+    target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
@@ -115,4 +115,4 @@ compilers:
       f77: /home/compilers/pgi/linux86-64/15.10/bin/pgf77
       fc: /home/compilers/pgi/linux86-64/15.10/bin/pgfortran
     spec: pgi@15.10
-    target: ivybridge
+    target: x86_64
