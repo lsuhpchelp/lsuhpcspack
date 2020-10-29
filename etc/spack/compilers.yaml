@@ -3,8 +3,8 @@ compilers:
     environment: {}
     extra_rpaths: ["/usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64"]
     flags: {}
-    modules: [intel/19.0.5]
-    operating_system: rhel7
+    modules: [intel/2019.5]
+    operating_system: rhel6
     paths:
       cc: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/icc
       cxx: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/icpc
@@ -17,46 +17,98 @@ compilers:
     extra_rpaths: []
     flags: {}
     modules: []
-    operating_system: rhel7
+    operating_system: rhel6
     paths:
       cc: /usr/bin/gcc
       cxx: /usr/bin/g++
       f77: /usr/bin/gfortran
       fc: /usr/bin/gfortran
-    spec: gcc@4.8.5
+    spec: gcc@4.4.7
     target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
     flags: {}
-    modules: [gcc/8.4.0]
-    operating_system: rhel7
+    modules: [gcc/9.2.0]
+    operating_system: rhel6
     paths:
-      cc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gcc
-      cxx: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/g++ 
-      f77: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gfortran
-      fc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gfortran
-    spec: gcc@8.4.0
+      cc: /usr/local/packages/compilers/gcc/9.2.0/bin/gcc
+      cxx: /usr/local/packages/compilers/gcc/9.2.0/bin/g++
+      f77: /usr/local/packages/compilers/gcc/9.2.0/bin/gfortran
+      fc: /usr/local/packages/compilers/gcc/9.2.0/bin/gfortran
+    spec: gcc@9.2.0
     target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
     flags: {}
-    modules: [gcc/9.3.0]
-    operating_system: rhel7
+    modules: [gcc/6.5.0/gcc-5.5.0]
+    operating_system: rhel6
     paths:
-      cc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gcc
-      cxx: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/g++
-      f77: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
-      fc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
-    spec: gcc@9.3.0
+      cc: /ddnA/project/lyan1/projects/spack/opt/spack/gcc/6.5.0/gcc-5.5.0-ymfdusx2/gcc
+      cxx: /ddnA/project/lyan1/projects/spack/opt/spack/gcc/6.5.0/gcc-5.5.0-ymfdusx2/g++
+      f77: /ddnA/project/lyan1/projects/spack/opt/spack/gcc/6.5.0/gcc-5.5.0-ymfdusx2/gfortran
+      fc: /ddnA/project/lyan1/projects/spack/opt/spack/gcc/6.5.0/gcc-5.5.0-ymfdusx2/gfortran
+    spec: gcc@6.5.0
     target: x86_64
 - compiler:
     environment: {}
     extra_rpaths: []
     flags: {}
     modules: []
-    operating_system: rhel7
+    operating_system: rhel6
+    paths:
+      cc: /home/compilers/Intel/composer_xe_2013.0.079/bin/intel64/icc
+      cxx: /home/compilers/Intel/composer_xe_2013.0.079/bin/intel64/icpc
+      f77: /home/compilers/Intel/composer_xe_2013.0.079/bin/intel64/ifort
+      fc: /home/compilers/Intel/composer_xe_2013.0.079/bin/intel64/ifort
+    spec: intel@13.0.0
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: rhel6
+    paths:
+      cc: /home/compilers/pgi/linux86-64/15.4/bin/pgcc
+      cxx: /home/compilers/pgi/linux86-64/15.4/bin/pgc++
+      f77: /home/compilers/pgi/linux86-64/15.4/bin/pgf77
+      fc: /home/compilers/pgi/linux86-64/15.4/bin/pgfortran
+    spec: pgi@15.4
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: rhel6
+    paths:
+      cc: /home/compilers/Intel/parallel_studio_xe_2017_update4/bin/icc
+      cxx: /home/compilers/Intel/parallel_studio_xe_2017_update4/bin/icpc
+      f77: /home/compilers/Intel/parallel_studio_xe_2017_update4/bin/ifort
+      fc: /home/compilers/Intel/parallel_studio_xe_2017_update4/bin/ifort
+    spec: intel@17.0.4
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: rhel6
+    paths:
+      cc: /home/compilers/Intel/parallel_studio_xe_2016_update3/bin/icc
+      cxx: /home/compilers/Intel/parallel_studio_xe_2016_update3/bin/icpc
+      f77: /home/compilers/Intel/parallel_studio_xe_2016_update3/bin/ifort
+      fc: /home/compilers/Intel/parallel_studio_xe_2016_update3/bin/ifort
+    spec: intel@16.0.3
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: rhel6
     paths:
       cc: /home/compilers/pgi/linux86-64/15.10/bin/pgcc
       cxx: /home/compilers/pgi/linux86-64/15.10/bin/pgc++
