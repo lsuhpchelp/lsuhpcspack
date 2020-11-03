@@ -95,10 +95,10 @@ packages:
 #    paths:
 #      cmake@2.8.12: /usr/bin
 #    buildable: False
-  cuda:
-    modules:
-      cuda@9.2: cuda/9.2
-    buildable: False
+#  cuda:
+#    modules:
+#      cuda@9.2: cuda/9.2
+#    buildable: False
   findutils:
     compiler: [gcc,intel]
     paths:
