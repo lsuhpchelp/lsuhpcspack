@@ -1,10 +1,12 @@
 compilers:
 - compiler:
-    environment: {}
+    environment:
+      set:
+        INTEL_LICENSE_FILE: /usr/local/compilers/Intel
     extra_rpaths: ["/usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64"]
     flags: {}
     modules: [intel/19.0.5]
-    operating_system: rhel7
+    operating_system: rhel6
     paths:
       cc: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/icc
       cxx: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/icpc
@@ -17,7 +19,7 @@ compilers:
     extra_rpaths: []
     flags: {}
     modules: []
-    operating_system: rhel7
+    operating_system: rhel6
     paths:
       cc: /usr/bin/gcc
       cxx: /usr/bin/g++
@@ -30,7 +32,7 @@ compilers:
     extra_rpaths: []
     flags: {}
     modules: [gcc/8.4.0]
-    operating_system: rhel7
+    operating_system: rhel6
     paths:
       cc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gcc
       cxx: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/g++ 
@@ -43,7 +45,7 @@ compilers:
     extra_rpaths: []
     flags: {}
     modules: [gcc/9.3.0]
-    operating_system: rhel7
+    operating_system: rhel6
     paths:
       cc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gcc
       cxx: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/g++
@@ -56,7 +58,7 @@ compilers:
     extra_rpaths: []
     flags: {}
     modules: []
-    operating_system: rhel7
+    operating_system: rhel6
     paths:
       cc: /home/compilers/pgi/linux86-64/15.10/bin/pgcc
       cxx: /home/compilers/pgi/linux86-64/15.10/bin/pgc++
