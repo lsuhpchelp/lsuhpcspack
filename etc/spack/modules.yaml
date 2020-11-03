@@ -57,6 +57,9 @@ modules:
       - 'libxc'
       - 'libxsmm'
       - 'numactl'
+      - 'otf2'
+      - 'papi'
+      - 'pdt'
       - 'pango'
       - 'pcre'
       - 'pcre2'
@@ -99,9 +102,9 @@ modules:
         '+cuda': cuda
         '+kokkos': kokkos
         'process_managers=hydra': hydra
-#      environment:
-#        set:
-#          '${PACKAGE}ROOT': '${PREFIX}'
+      environment:
+        set:
+          '${PACKAGE}ROOT': '${PREFIX}'
 #    cuda:
 #      naming_scheme: '${PACKAGE}/${VERSION}'
   prefix_inspections:

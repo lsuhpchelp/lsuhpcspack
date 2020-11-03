@@ -95,10 +95,10 @@ packages:
 #    paths:
 #      cmake@2.8.12: /usr/bin
 #    buildable: False
-  cuda:
-    modules:
-      cuda@9.2: cuda/9.2
-    buildable: False
+#  cuda:
+#    modules:
+#      cuda@9.2: cuda/9.2
+#    buildable: False
   findutils:
     compiler: [gcc,intel]
     paths:
@@ -158,61 +158,73 @@ packages:
     compiler: [gcc,intel]
     paths:
       libelf@0.152 arch=linux-rhel6-ivybridge: /usr/lib64
+      libelf@0.152 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   libffi:
     compiler: [gcc,intel]
     paths:
       libffi@3.0.13 arch=linux-rhel6-ivybridge: /usr/lib64
+      libffi@3.0.13 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   libtool:
     compiler: [gcc,intel]
     paths:
       libtool@2.4.2 arch=linux-rhel6-ivybridge: /usr
+      libtool@2.4.2 arch=linux-rhel6-x86_64: /usr
     buildable: False
   libpng:
     compiler: [gcc,intel]
     paths:
       libpng@1.2.49 arch=linux-rhel6-ivybridge: /usr
+      libpng@1.2.49 arch=linux-rhel6-x86_64: /usr
     buildable: False
   libjpeg-turbo:
     compiler: [gcc,intel]
     paths:
       libjpeg-turbo@1.2.90 arch=linux-rhel6-ivybridge: /usr
+      libjpeg-turbo@1.2.90 arch=linux-rhel6-x86_64: /usr
     buildable: False
   libtiff:
     compiler: [gcc,intel]
     paths:
       libtiff@4.0.3 arch=linux-rhel6-ivybridge: /usr
+      libtiff@4.0.3 arch=linux-rhel6-x86_64: /usr
     buildable: False
   libxt:
     compiler: [gcc,intel]
     paths:
       libxt@1.1.5 arch=linux-rhel6-ivybridge: /usr/lib64
+      libxt@1.1.5 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   lua:
     compiler: [gcc,intel]
     paths:
       lua@5.1.4 arch=linux-rhel6-ivybridge: /usr
+      lua@5.1.4 arch=linux-rhel6-x86_64: /usr
     buildable: False
   lz4:
     compiler: [gcc,intel]
     paths:
       lz4@1.7.5 arch=linux-rhel6-ivybridge: /usr
+      lz4@1.7.5 arch=linux-rhel6-x86_64: /usr
     buildable: False
   lzo:
     compiler: [gcc,intel]
     paths:
       lzo@2.03 arch=linux-rhel6-ivybridge: /usr/lib64
+      lzo@2.03 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   mesa:
     compiler: [gcc,intel]
     paths:
       mesa@17.2.3 arch=linux-rhel6-ivybridge: /usr/lib64
+      mesa@17.2.3 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
 #  mpc:
 #    compiler: [gcc,intel]
 #    paths:
 #      mpc@1.0.1 arch=linux-rhel6-ivybridge: /usr/lib64
+#      mpc@1.0.1 arch=linux-rhel6-x86_64: /usr/lib64
 #    buildable: False
   mpfr:
     compiler: [gcc,intel]
@@ -222,36 +234,43 @@ packages:
   nettle:
     paths:
       nettle@2.7.1 arch=linux-rhel6-ivybridge: /usr
+      nettle@2.7.1 arch=linux-rhel6-x86_64: /usr
     buildable: False
   papi:
     compiler: [gcc,intel]
     paths:
       papi@5.2.0 arch=linux-rhel6-ivybridge: /usr
+      papi@5.2.0 arch=linux-rhel6-x86_64: /usr
     buildable: False
   bison:
     compiler: [gcc,intel]
     paths:
       bison@3.0.4 arch=linux-rhel6-ivybridge: /usr
+      bison@3.0.4 arch=linux-rhel6-x86_64: /usr
     buildable: False
 #  curl:
 #    compiler: [gcc,intel]
 #    paths:
 #      curl@7.19.7 arch=linux-rhel6-ivybridge: /usr/bin
+#      curl@7.19.7 arch=linux-rhel6-x86_64: /usr/bin
 #    buildable: False
   icu4c:
     compiler: [gcc,intel]
     paths:
       icu4c@42.1 arch=linux-rhel6-ivybridge: /usr/lib64
+      icu4c@42.1 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   openssl:
     compiler: [gcc,intel]
     paths:
       openssl@1.0.1e arch=linux-rhel6-ivybridge: /usr/include/openssl
+      openssl@1.0.1e arch=linux-rhel6-x86_64: /usr/include/openssl
     buildable: False
   pango:
     compiler: [gcc,intel]
     paths:
       pango@1.40.4 arch=linux-rhel6-ivybridge: /usr
+      pango@1.40.4 arch=linux-rhel6-x86_64: /usr
     buildable: False
   python:
     modules:
@@ -262,26 +281,31 @@ packages:
     compiler: [gcc,intel]
     paths:
       qt@4.8.7 +opengl arch=linux-rhel6-ivybridge: /usr/lib64
+      qt@4.8.7 +opengl arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   rdma-core:
     compiler: [gcc,intel]
     paths:
       rdma-core@20 arch=linux-rhel6-ivybridge: /usr/lib64
+      rdma-core@20 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   sqlite:
     compiler: [gcc,intel]
     paths:
       sqlite@3.7.17 -fts arch=linux-rhel6-ivybridge: /usr/bin
+      sqlite@3.7.17 -fts arch=linux-rhel6-x86_64: /usr/bin
 #    buildable: False
   subversion:
     compiler: [gcc,intel]
     paths:
       subversion@1.7.14 arch=linux-rhel6-ivybridge: /usr/bin
+      subversion@1.7.14 arch=linux-rhel6-x86_64: /usr/bin
     buildable: False
   tar:
     compiler: [gcc,intel]
     paths:
       tar@1.26 arch=linux-rhel6-ivybridge: /bin
+      tar@1.26 arch=linux-rhel6-x86_64: /bin
     buildable: False
   tcl:
     compiler: [gcc,intel]
@@ -291,27 +315,33 @@ packages:
   tcsh:
     paths:
       tcsh@6.18.01 arch=linux-rhel6-ivybridge: /bin
+      tcsh@6.18.01 arch=linux-rhel6-x86_64: /bin
     buildable: False
   tk:
     compiler: [gcc,intel]
     paths:
       tk@8.5 arch=linux-rhel6-ivybridge: /usr
+      tk@8.5 arch=linux-rhel6-x86_64: /usr
     buildable: False
   zlib:
     compiler: [gcc,intel]
     paths:
       zlib@1.2.3 arch=linux-rhel6-ivybridge: /usr
       zlib@1.2.11 arch=linux-rhel6-ivybridge: /usr/local/packages/zlib/1.2.11
+      zlib@1.2.3 arch=linux-rhel6-x86_64: /usr
+      zlib@1.2.11 arch=linux-rhel6-x86_64: /usr/local/packages/zlib/1.2.11
     buildable: False
   expat:
     compiler: [gcc,intel]
     paths:
       expat@2.1.0 arch=linux-rhel6-ivybridge: /lib64
+      expat@2.1.0 arch=linux-rhel6-x86_64: /lib64
     buildable: False
   libarchive:
     compiler: [gcc,intel]
     paths:
       libarchive@3.1.2 arch=linux-rhel6-ivybridge: /usr/lib64
+      libarchive@3.1.2 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   libnl:
     compiler: [gcc,intel]
@@ -327,56 +357,67 @@ packages:
     compiler: [gcc,intel]
     paths:
       libpciaccess@0.14 arch=linux-rhel6-ivybridge: /usr/lib64
+      libpciaccess@0.14 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   libunistring:
     compiler: [gcc,intel]
     paths:
       libunistring@0.9.3 arch=linux-rhel6-ivybridge: /usr/lib64
+      libunistring@0.9.3 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   libx11:
     compiler: [gcc,intel]
     paths:
       libx11@1.6.5 arch=linux-rhel6-ivybridge: /usr/lib64
+      libx11@1.6.5 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   libxml2:
     compiler: [gcc,intel]
     paths:
       libxml2@2.9.1 arch=linux-rhel6-ivybridge: /usr
+      libxml2@2.9.1 arch=linux-rhel6-x86_64: /usr
     buildable: False
   libxpm:
     compiler: [gcc,intel]
     paths:
       libxpm@3.5.12 arch=linux-rhel6-ivybridge: /usr/lib64
+      libxpm@3.5.12 arch=linux-rhel6-x86_64: /usr/lib64
     buildable: False
   numactl:
     compiler: [gcc,intel]
     paths:
       numactl@2.0.9 arch=linux-rhel6-ivybridge: /usr/bin
+      numactl@2.0.9 arch=linux-rhel6-x86_64: /usr/bin
     buildable: False
   pkg-config:
     compiler: [gcc,intel]
     paths:
       pkg-config@0.27.1 arch=linux-rhel6-ivybridge: /usr/bin
+      pkg-config@0.27.1 arch=linux-rhel6-x86_64: /usr/bin
     buildable: False
 #  pcre:
 #    compiler: [gcc,intel]
 #    paths:
 #      pcre@8.32 arch=linux-rhel6-ivybridge: /usr
+#      pcre@8.32 arch=linux-rhel6-x86_64: /usr
 #    buildable: False
 #  pcre2:
 #    compiler: [gcc,intel]
 #    paths:
 #      pcre2@10.23 arch=linux-rhel6-ivybridge: /usr/lib64
+#      pcre2@10.23 arch=linux-rhel6-x86_64: /usr/lib64
 #    buildable: False
   perl:
     compiler: [gcc,intel]
     paths:
       perl@5.16.3 arch=linux-rhel6-ivybridge: /usr
+      perl@5.16.3 arch=linux-rhel6-x86_64: /usr
     buildable: False
   swig:
     compiler: [gcc,intel]
     paths:
       swig@2.0.10 arch=linux-rhel6-ivybridge: /usr/share/swig/2.0.10
+      swig@2.0.10 arch=linux-rhel6-x86_64: /usr/share/swig/2.0.10
     buildable: False
 #  xz:
 #    compiler: [gcc,intel]
@@ -406,6 +447,7 @@ packages:
   intel-parallel-studio:
     paths:
       intel-parallel-stuido@cluster.2019.5 arch=linux-rhel6-ivybridge: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
+      intel-parallel-stuido@cluster.2019.5 arch=linux-rhel6-x86_64: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
     buildable: False
   netlib-scalapack:
     buildable: False

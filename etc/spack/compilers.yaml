@@ -1,9 +1,11 @@
 compilers:
 - compiler:
-    environment: {}
+    environment:
+      set:
+        INTEL_LICENSE_FILE: /usr/local/compilers/Intel
     extra_rpaths: ["/usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64"]
     flags: {}
-    modules: [intel/2019.5]
+    modules: [intel/19.0.5]
     operating_system: rhel6
     paths:
       cc: /usr/local/compilers/Intel/parallel_studio_xe_2019.5/compilers_and_libraries/linux/bin/intel64/icc
