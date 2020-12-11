@@ -131,7 +131,7 @@ packages:
   glib:
     compiler: [gcc,intel]
     paths:
-      glib@2.54.2 arch=linux-rhel7-cascadelake: /usr
+      glib@2.56.0 arch=linux-rhel7-cascadelake: /usr
     buildable: False
   gmp:
     compiler: [gcc,intel]
@@ -141,7 +141,7 @@ packages:
   gnutls:
     compiler: [gcc,intel]
     paths:
-      gnutls@3.3.26 arch=linux-rhel7-cascadelake: /usr/lib64
+      gnutls@3.3.29 arch=linux-rhel7-cascadelake: /usr/lib64
     buildable: False
   hwloc:
     compiler: [gcc,intel]
@@ -160,7 +160,7 @@ packages:
   libelf:
     compiler: [gcc,intel]
     paths:
-      libelf@0.170 arch=linux-rhel7-cascadelake: /usr/lib64
+      libelf@0.176 arch=linux-rhel7-cascadelake: /usr/lib64
     buildable: False
   libffi:
     compiler: [gcc,intel]
@@ -402,7 +402,7 @@ packages:
 #    buildable: False
   intel-parallel-studio:
     paths:
-      intel-parallel-stuido@cluster.2019.5 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2019.5
+      intel-parallel-stuido@cluster.2020.4 arch=linux-rhel7-cascadelake: /usr/local/compilers/Intel/parallel_studio_xe_2020.4
     buildable: False
   netlib-scalapack:
     buildable: False
@@ -410,5 +410,5 @@ packages:
     buildable: False
   slurm:
     paths:
-      slurm@19.05.0 arch=linux-rhel7-cascadelake: /usr/include
+      slurm@19.05.7 arch=linux-rhel7-cascadelake: /usr/include
     buildable: False
