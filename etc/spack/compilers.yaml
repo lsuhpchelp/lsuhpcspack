@@ -45,10 +45,10 @@ compilers:
     modules: [gcc/9.3.0]
     operating_system: rhel7
     paths:
-      cc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gcc
-      cxx: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/g++
-      f77: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
-      fc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
+      cc: /usr/local/packages/gcc/9.3.0/5qyonqcb/bin/gcc
+      cxx: /usr/local/packages/gcc/9.3.0/5qyonqcb/bin/g++
+      f77: /usr/local/packages/gcc/9.3.0/5qyonqcb/bin/gfortran
+      fc: /usr/local/packages/gcc/9.3.0/5qyonqcb/bin/gfortran
     spec: gcc@9.3.0
     target: x86_64
 - compiler:
