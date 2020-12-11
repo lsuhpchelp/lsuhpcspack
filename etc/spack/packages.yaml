@@ -371,7 +371,7 @@ packages:
   swig:
     compiler: [gcc,intel]
     paths:
-      swig@2.0.10 arch=linux-rhel7-cascadelake: /usr/share/swig/2.0.10
+      swig@3.0.12 arch=linux-rhel7-cascadelake: /usr/share/swig/3.0.12
     buildable: False
   xz:
     compiler: [gcc,intel]
