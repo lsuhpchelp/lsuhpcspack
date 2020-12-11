@@ -50,6 +50,8 @@ packages:
     variants: +openmp
   scotch:
     variants: +metis
+  hwloc:
+    variants: ~pci
   readline:
     compiler: [gcc,intel]
     paths: 
