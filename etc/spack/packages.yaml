@@ -262,7 +262,7 @@ packages:
   rdma-core:
     compiler: [gcc,intel]
     paths:
-      rdma-core@20 arch=linux-rhel7-cascadelake: /usr/lib64
+      rdma-core@50 arch=linux-rhel7-cascadelake: /usr/lib64
     buildable: False
   sqlite:
     compiler: [gcc,intel]
