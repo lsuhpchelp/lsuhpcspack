@@ -14,6 +14,8 @@ class Mvapich2(AutotoolsPackage):
     list_url = "http://mvapich.cse.ohio-state.edu/downloads/"
 
     # Prefer the latest stable release
+    version('2.3.5', sha256='f9f467fec5fc981a89a7beee0374347b10c683023c76880f92a1a0ad4b961a8c')
+    version('2.3.4', sha256='7226a45c7c98333c8e5d2888119cce186199b430c13b7b1dca1769909e68ea7a')
     version('2.3.3', sha256='41d3261be57e5bc8aabf4e32981543c015c5443ff032a26f18205985e18c2b73')
     version('2.3.2', sha256='30cc0d7bcaa075d204692f76bca4d65a539e0f661c7460ffa9f835d6249e1ebf')
     version('2.3.1', sha256='314e12829f75f3ed83cd4779a972572d1787aac6543a3d024ea7c6080e0ee3bf')
@@ -103,7 +105,7 @@ class Mvapich2(AutotoolsPackage):
     depends_on('cuda', when='+cuda')
     depends_on('psm', when='fabrics=psm')
     depends_on('opa-psm2', when='fabrics=psm2')
-    depends_on('rdma-core', when='fabrics=mrail')
+#    depends_on('rdma-core', when='fabrics=mrail')
     depends_on('rdma-core', when='fabrics=nemesisib')
     depends_on('rdma-core', when='fabrics=nemesistcpib')
     depends_on('rdma-core', when='fabrics=nemesisibtcp')
