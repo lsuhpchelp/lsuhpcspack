@@ -16,7 +16,7 @@
 packages:
   all:
     compiler: [intel@19.0.5, gcc@9.3.0, pgi]
-    target: [cascadelake]
+    target: [ivybridge]
     providers:
       awk: [gawk]
       blas: [intel-mkl]
@@ -36,8 +36,6 @@ packages:
       szip: [libszip, libaec]
       tbb: [intel-tbb]
       jpeg: [libjpeg-turbo, libjpeg]
-  mvapich2:
-    variants: process_managers=slurm
   petsc:
     variants: +fftw +mumps +suite-sparse
   tau:

@@ -5,6 +5,8 @@ MODULEROOT=/usr/local/packages/Modules
 export PATH=$PATH:$MODULEROOT/default/bin
 export MODULEPATH=$MODULEROOT/modulefiles/apps:$MODULEPATH
 . $MODULEROOT/default/init/bash
+export MODULEPATH=/work/lyan1/rhel7/lsuhpcspack/modules/linux-rhel7-ivybridge
+module purge
 
 # For Spack
-. /usr/local/packages/spack/share/spack/setup-env.sh
+. /work/lyan1/rhel7/lsuhpcspack/share/spack/setup-env.sh

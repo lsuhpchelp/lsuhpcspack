@@ -64,3 +64,16 @@ compilers:
       fc: /home/compilers/pgi/linux86-64/15.10/bin/pgfortran
     spec: pgi@15.10
     target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: rhel7
+    paths:
+      cc: /usr/local/packages/compilers/pgi/linux86-64/18.7/bin/pgcc
+      cxx: /usr/local/packages/compilers/pgi/linux86-64/18.7/bin/pgc++
+      f77: /usr/local/packages/compilers/pgi/linux86-64/18.7/bin/pgf77
+      fc: /usr/local/packages/compilers/pgi/linux86-64/18.7/bin/pgfortran
+    spec: pgi@18.7
+    target: x86_64
