@@ -25,9 +25,14 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
     version('develop', svn=svn + 'trunk')
 
+    version('10.2.0', sha256='b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c')
+    version('10.1.0', sha256='b6898a23844b656f1b68691c5c012036c2e694ac4b53a8918d4712ad876e7ea2')
+
+    version('9.3.0', sha256='71e197867611f6054aa1119b13a0c0abac12834765fe2d81f35ac57f84f742d1')
     version('9.2.0', sha256='ea6ef08f121239da5695f76c9b33637a118dcf63e24164422231917fa61fb206')
     version('9.1.0', sha256='79a66834e96a6050d8fe78db2c3b32fb285b230b855d0a66288235bc04b327a0')
 
+    version('8.4.0', sha256='e30a6e52d10e1f27ed55104ad233c30bd1e99cfb5ff98ab022dc941edd1b2dd4')
     version('8.3.0', sha256='64baadfe6cc0f4947a84cb12d7f0dfaf45bb58b7e92461639596c21e02d97d2c')
     version('8.2.0', sha256='196c3c04ba2613f893283977e6011b2345d1cd1af9abeac58e916b1aab3e0080')
     version('8.1.0', sha256='1d1866f992626e61349a1ccd0b8d5253816222cdc13390dcfaa74b093aa2b153')
@@ -85,6 +90,9 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     variant('nvptx',
             default=False,
             description='Target nvptx offloading to NVIDIA GPUs')
+    variant('bootstrap',
+            default=False,
+            description='add --enable-bootstrap flag for stage3 build')
 
     # https://gcc.gnu.org/install/prerequisites.html
     depends_on('gmp@4.3.2:')
