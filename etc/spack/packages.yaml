@@ -56,6 +56,10 @@ packages:
     variants: ~mpi
   openmpi:
     variants: +thread_multiple fabrics=auto
+  r:
+    variants: +memory_profiling
+  raxml:
+    variants: +pthreads
   readline:
     compiler: [gcc,intel]
     paths: 
@@ -138,16 +142,22 @@ packages:
   gnutls:
     compiler: [gcc,intel]
     paths:
-      gnutls@3.3.26 arch=linux-rhel7-ivybridge: /usr/lib64
+      gnutls@3.3.29 arch=linux-rhel7-ivybridge: /usr/lib64
     buildable: False
   hwloc:
     compiler: [gcc,intel]
     variants: ~pci
 #    paths:
 #      hwloc@1.11.8 arch=linux-rhel7-ivybridge: /usr/bin
+#  icu4c:
+#    compiler: [gcc,intel]
+#    paths:
+#      icu4c@50.2 arch=linux-rhel7-ivybridge: /usr/lib64
+#      icu4c@50.2 arch=linux-rhel7-x86_64: /usr/lib64
+#    buildable: False
   jdk:
     paths:
-      jdk@1.8.0_222 arch=linux-rhel7-ivybridge: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.222.b03-1.el7.x86_64
+      jdk@1.8.0_262 arch=linux-rhel7-ivybridge: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-1.el7.x86_64/
     buildable: False
   libdwarf:
     compiler: [gcc,intel]
@@ -172,8 +182,8 @@ packages:
   libpng:
     compiler: [gcc,intel]
     paths:
-      libpng@1.5.13 arch=linux-rhel7-ivybridge: /usr
-    buildable: False
+      libpng@1.5.13 arch=linux-rhel7-ivybridge: /usr/lib64
+#    buildable: False
   libjpeg-turbo:
     compiler: [gcc,intel]
     paths:
@@ -199,11 +209,11 @@ packages:
     paths:
       lz4@1.7.5 arch=linux-rhel7-ivybridge: /usr
     buildable: False
-  lzo:
-    compiler: [gcc,intel]
-    paths:
-      lzo@2.06 arch=linux-rhel7-ivybridge: /usr/lib64
-    buildable: False
+#  lzo:
+#    compiler: [gcc,intel]
+#    paths:
+#      lzo@2.06 arch=linux-rhel7-ivybridge: /usr/lib64
+#    buildable: False
   mesa:
     compiler: [gcc,intel]
     paths:
@@ -256,6 +266,7 @@ packages:
   python:
     paths:
       python@2.7.5 arch=linux-rhel7-ivybridge: /usr
+      python@3.6.8 arch=linux-rhel7-ivybridge: /usr
   qt:
     compiler: [gcc,intel]
     paths:
@@ -369,7 +380,7 @@ packages:
     compiler: [gcc,intel]
     paths:
       perl@5.16.3 arch=linux-rhel7-ivybridge: /usr
-    buildable: False
+#    buildable: False
   swig:
     compiler: [gcc,intel]
     paths:
