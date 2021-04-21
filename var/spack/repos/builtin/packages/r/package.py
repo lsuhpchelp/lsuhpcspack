@@ -20,7 +20,11 @@ class R(AutotoolsPackage):
     url = "https://cloud.r-project.org/src/base/R-3/R-3.4.3.tar.gz"
 
     extendable = True
-
+    version('4.0.3', sha256='09983a8a78d5fb6bc45d27b1c55f9ba5265f78fa54a55c13ae691f87c5bb9e0d')
+    version('4.0.2', sha256='d3bceab364da0876625e4097808b42512395fdf41292f4915ab1fd257c1bbe75')
+    version('4.0.1', sha256='95fe24a4d8d8f8f888460c8f5fe4311cec656e7a1722d233218bc03861bc6f32')
+    version('4.0.0', sha256='06beb0291b569978484eb0dcb5d2339665ec745737bdfb4e873e7a5a75492940')
+    version('3.6.3', sha256='89302990d8e8add536e12125ec591d6951022cf8475861b3690bc8bf1cefaa8f')
     version('3.6.2', sha256='bd65a45cddfb88f37370fbcee4ac8dd3f1aebeebe47c2f968fd9770ba2bbc954')
     version('3.6.1', sha256='5baa9ebd3e71acecdcc3da31d9042fb174d55a42829f8315f2457080978b1389')
     version('3.6.0', sha256='36fcac3e452666158e62459c6fc810adc247c7109ed71c5b6c3ad5fc2bf57509')
@@ -85,6 +89,14 @@ class R(AutotoolsPackage):
 
     patch('zlib.patch', when='@:3.3.2')
 
+
+    # R custom URL version
+    def url_for_version(self, version):
+        """Handle R's customed URL versions"""
+        url = 'https://cloud.r-project.org/src/base'
+        return url + '/R-%s/R-%s.tar.gz' % (version.up_to(1), version)
+
+
     filter_compiler_wrappers(
         'Makeconf', relative_root=os.path.join('rlib', 'R', 'etc')
     )
@@ -116,6 +128,11 @@ class R(AutotoolsPackage):
 
         config_args = [
             '--libdir={0}'.format(join_path(prefix, 'rlib')),
+            '--with-pcre1',
+            '--enable-utf',
+            '--enable-unicode-properties',
+            '--enable-jit',
+            '--disable-cpp',
             '--enable-R-shlib',
             '--enable-BLAS-shlib',
             '--enable-R-framework=no',
