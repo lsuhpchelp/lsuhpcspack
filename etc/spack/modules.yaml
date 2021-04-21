@@ -63,6 +63,7 @@ modules:
       - 'libxc'
       - 'libxt'
       - 'libxsmm'
+      - 'lmdb'
       - 'numactl'
       - 'otf2'
       - 'pango'
@@ -101,6 +102,7 @@ modules:
       - 'cmake@2.8.12'
       - 'hwloc@1.11.8'
       - 'python@2.7.5'
+      - 'python@3.6.8'
     all:
       autoload: 'direct'
       conflict:
