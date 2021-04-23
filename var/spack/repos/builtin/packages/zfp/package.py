@@ -12,8 +12,10 @@ class Zfp(CMakePackage):
        arrays.
     """
 
-    homepage = 'http://computing.llnl.gov/projects/floating-point-compression'
-    url      = 'http://computing.llnl.gov/projects/floating-point-compression/download/zfp-0.5.2.tar.gz'
+    homepage    = 'https://zfp.llnl.gov'
+    url         = 'https://github.com/LLNL/zfp/releases/download/0.5.5/zfp-0.5.5.tar.gz'
+    git         = 'https://github.com/LLNL/zfp.git'
+    maintainers = ['lindstro', 'GarrettDMorrison']
 
     version('0.5.5', sha256='fdf7b948bab1f4e5dccfe2c2048fd98c24e417ad8fb8a51ed3463d04147393c5')
     version('0.5.4', sha256='768a05ed9bf10e54ac306f90b81dd17b0e7b13782f01823d7da4394fd2da8adb')
