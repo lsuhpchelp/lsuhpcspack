@@ -36,6 +36,7 @@ modules:
       - 'freetype'
       - 'gdbm'
       - 'gettext'
+      - 'gnutls'
       - 'glib'
       - 'htslib'
       - 'autoconf'
@@ -59,6 +60,7 @@ modules:
       - 'libpciaccess'
       - 'libpng'
       - 'libtiff'
+      - 'libtirpc'
       - 'libunwind'
       - 'libxc'
       - 'libxt'
@@ -103,6 +105,7 @@ modules:
       - 'hwloc@1.11.8'
       - 'python@2.7.5'
       - 'python@3.6.8'
+      - 'mesa@17.2.3'
     all:
       autoload: 'direct'
       conflict:
