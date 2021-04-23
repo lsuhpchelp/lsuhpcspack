@@ -176,6 +176,11 @@ packages:
     paths:
       libffi@3.0.13 arch=linux-rhel7-ivybridge: /usr/lib64
     buildable: False
+  libtirpc:
+    compiler: [gcc,intel]
+    paths:
+      libtirpc@0.2.4 arch=linux-rhel7-ivybridge: /lib64
+    buildable: False
   libtool:
     compiler: [gcc,intel]
     paths:
