@@ -21,6 +21,8 @@ import platform
 #    format returned by platform.system() and 'arch' by platform.machine()
 
 _versions = {
+    '11.2.2': {
+        'Linux-x86_64': ('955ae5d59531923d32a3bfe3f68a7dfe', 'https://developer.download.nvidia.com/compute/cuda/11.2.2/local_installers/cuda_11.2.2_460.32.03_linux.run')},
     '11.0.2': {
         'Linux-aarch64': ('23851e30f7c47a1baad92891abde0adbc783de5962c7480b9725198ceacda4a0', 'http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux_sbsa.run'),
         'Linux-x86_64': ('48247ada0e3f106051029ae8f70fbd0c238040f58b0880e55026374a959a69c1', 'http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux.run'),
