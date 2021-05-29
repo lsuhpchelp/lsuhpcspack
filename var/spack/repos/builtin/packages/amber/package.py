@@ -20,7 +20,7 @@ class Amber(Package, CudaPackage):
        """
 
     homepage = "http://ambermd.org/"
-    url      = "file:///usr/local/packages/sources/manual_packages/Amber18.tar.bz2".format(os.getcwd())
+    url = "file://{0}/Amber18.tar.bz2".format(os.getcwd())
     manual_download = True
 
     maintainers = ['hseara']
@@ -96,19 +96,6 @@ class Amber(Package, CudaPackage):
         patch_url_str = 'https://ambermd.org/bugfixes/{0}.0/update.{1}'
         patch(patch_url_str.format(ver, num),
               sha256=checksum, level=0, when='@{0}'.format(ver))
-
-    # Patch to add ppc64le in config.guess
-    patch('ppc64le.patch', when='@18: target=ppc64le')
-
-    # Patch to add aarch64 in config.guess
-    patch('aarch64.patch', when='@18: target=aarch64')
-
-    # Workaround to modify the AmberTools script when using the NVIDIA
-    # compilers
-    patch('nvhpc.patch', when='@18: %nvhpc')
-
-    # Workaround to use NVIDIA compilers to build the bundled Boost
-    patch('nvhpc-boost.patch', when='@18: %nvhpc')
 
     variant('mpi', description='Build MPI executables',
             default=True)
