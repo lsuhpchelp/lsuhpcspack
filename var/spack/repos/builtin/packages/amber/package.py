@@ -20,7 +20,7 @@ class Amber(Package, CudaPackage):
        """
 
     homepage = "http://ambermd.org/"
-    url = "file://{0}/Amber18.tar.bz2".format(os.getcwd())
+    url      = "file:///usr/local/packages/sources/manual_packages/Amber18.tar.bz2".format(os.getcwd())
     manual_download = True
 
     maintainers = ['hseara']
