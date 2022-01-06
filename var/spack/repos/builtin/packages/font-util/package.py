@@ -97,4 +97,5 @@ class FontUtil(AutotoolsPackage):
                 autoreconf(*autoconf_args)
                 configure = Executable("./configure")
                 configure('--prefix={0}'.format(self.prefix))
+                configure('--with-fc-confdir={0}'.format(self.prefix.etc))
                 make('install')
