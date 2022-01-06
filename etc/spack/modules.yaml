@@ -1,0 +1,152 @@
+# -------------------------------------------------------------------------
+# This is the default configuration for Spack's module file generation.
+#
+# Settings here are versioned with Spack and are intended to provide
+# sensible defaults out of the box. Spack maintainers should edit this
+# file to keep it current.
+#
+# Users can override these settings by editing the following files.
+#
+# Per-spack-instance settings (overrides defaults):
+#   $SPACK_ROOT/etc/spack/modules.yaml
+#
+# Per-user settings (overrides default and site settings):
+#   ~/.spack/modules.yaml
+# -------------------------------------------------------------------------
+modules:
+  enable:
+    - tcl
+  tcl:
+    verbose: True
+    hash_length: 0
+    naming_scheme: '{name}/{version}/{compiler.name}-{compiler.version}'
+    whitelist:
+      - 'gcc'
+    blacklist:
+      - '%gcc@4.4.7'
+      - '%gcc@4.8.5'
+      - 'perl@5.16.3'
+      - 'readline'
+      - 'ncurses'
+      - 'm4'
+      - 'binutils'
+      - 'cairo'
+      - 'charmpp'
+      - 'elpa'
+      - 'freetype'
+      - 'gdbm'
+      - 'gettext'
+      - 'gnutls'
+      - 'glib'
+      - 'htslib'
+      - 'autoconf'
+      - 'automake'
+      - 'bzip2'
+      - 'icu4c'
+      - 'libtool'
+      - 'bison'
+      - 'curl'
+      - 'openssl'
+      - 'zlib'
+      - 'intel-mkl'
+      - 'intel-tbb'
+      - 'libdwarf'
+      - 'libelf'
+      - 'libfabric'
+      - 'libffi'
+      - 'libiconv'
+      - 'libint'
+      - 'libjpeg-turbo'
+      - 'libpciaccess'
+      - 'libpng'
+      - 'libtiff'
+      - 'libtirpc'
+      - 'libunwind'
+      - 'libxc'
+      - 'libxt'
+      - 'libxsmm'
+      - 'lmdb'
+      - 'numactl'
+      - 'otf2'
+      - 'pango'
+      - 'papi'
+      - 'pcre'
+      - 'pdt'
+      - 'pkg-config'
+      - 'qhull'
+      - 'slurm'
+      - 'subversion'
+      - 'expat'
+      - 'libarchive'
+      - 'libxml2'
+      - 'libiconv'
+      - 'libunistring'
+      - 'sqlite'
+      - 'tar'
+      - 'tcsh'
+      - 'tcl'
+      - 'tk'
+      - 'gmp'
+      - 'mpfr'
+      - 'isl'
+      - 'mpc'
+      - 'xz'
+      - 'zip'
+      - 'pkgconf'
+      - 'findutils'
+      - 'flex'
+      - 'cgal'
+      - 'libsodium'
+      - 'libzmq'
+      - 'sz'
+      - 'zfp'
+      - 'zstd'
+      - 'cmake@2.8.12'
+      - 'hwloc@1.11.8'
+      - 'python@2.7.5'
+      - 'python@3.6.8'
+      - 'mesa@17.2.3'
+    all:
+      autoload: 'direct'
+      conflict:
+        - '{name}'
+      suffixes:
+        '^python@2.7.14': python-2.7.14
+        '^mvapich2@2.3.3': mvapich-2.3.3
+        '^mpich@3.3.2': mpich-3.3.2
+        '+debug': debug
+        '+cuda': cuda
+        '+kokkos': kokkos
+        'process_managers=hydra': hydra
+#      environment:
+#        set:
+#          '${PACKAGE}ROOT': '${PREFIX}'
+#    cuda:
+#      naming_scheme: '${PACKAGE}/${VERSION}'
+  prefix_inspections:
+    bin:
+      - PATH
+    man:
+      - MANPATH
+    share/man:
+      - MANPATH
+    share/aclocal:
+      - ACLOCAL_PATH
+    lib:
+      - LIBRARY_PATH
+      - LD_LIBRARY_PATH
+    lib64:
+      - LIBRARY_PATH
+      - LD_LIBRARY_PATH
+    include:
+      - CPATH
+    lib/pkgconfig:
+      - PKG_CONFIG_PATH
+    lib64/pkgconfig:
+      - PKG_CONFIG_PATH
+    '':
+      - CMAKE_PREFIX_PATH
+
+  lmod:
+    hierarchy:
+      - mpi
