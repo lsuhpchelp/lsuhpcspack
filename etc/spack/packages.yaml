@@ -16,7 +16,7 @@
 packages:
   all:
     compiler: [intel@19.0.5, gcc@9.3.0, pgi]
-    target: [ivybridge]
+    target: [cascadelake]
     providers:
       awk: [gawk]
       blas: [intel-mkl]
