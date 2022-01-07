@@ -32,10 +32,10 @@ compilers:
     modules: [gcc/8.4.0]
     operating_system: rhel7
     paths:
-      cc: /usr/local/packages/gcc/8.4.0/fgtruuv6/bin/gcc
-      cxx: /usr/local/packages/gcc/8.4.0/fgtruuv6/bin/g++ 
-      f77: /usr/local/packages/gcc/8.4.0/fgtruuv6/bin/gfortran
-      fc: /usr/local/packages/gcc/8.4.0/fgtruuv6/bin/gfortran
+      cc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gcc
+      cxx: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/g++ 
+      f77: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gfortran
+      fc: /usr/local/packages/gcc/8.4.0/6z6qjp2q/bin/gfortran
     spec: gcc@8.4.0
     target: x86_64
 - compiler:
@@ -45,10 +45,10 @@ compilers:
     modules: [gcc/9.3.0]
     operating_system: rhel7
     paths:
-      cc: /usr/local/packages/gcc/9.3.0/5jmpgadg/bin/gcc
-      cxx: /usr/local/packages/gcc/9.3.0/5jmpgadg/bin/g++
-      f77: /usr/local/packages/gcc/9.3.0/5jmpgadg/bin/gfortran
-      fc: /usr/local/packages/gcc/9.3.0/5jmpgadg/bin/gfortran
+      cc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gcc
+      cxx: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/g++
+      f77: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
+      fc: /usr/local/packages/gcc/9.3.0/7ywjt2jl/bin/gfortran
     spec: gcc@9.3.0
     target: x86_64
 - compiler:

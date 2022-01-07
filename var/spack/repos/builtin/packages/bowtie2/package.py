@@ -66,12 +66,6 @@ class Bowtie2(Package):
 
     def install(self, spec, prefix):
         make_arg = []
-	if self.spec.satisfies('%intel'):
-	    #LY: dynamic build crashed with linking errors
-	#    make_arg.append('STATIC_BUILD=1')
-	    make_arg.append('NO_TBB=1')
-	#    make_arg.append('CXXFLAGS=-tbb')
-	#    make_arg.append('LDFLAGS=-tbb')
         if self.spec.target.family == 'aarch64':
             make_arg.append('POPCNT_CAPABILITY=0')
         make(*make_arg)
