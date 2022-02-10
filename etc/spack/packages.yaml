@@ -392,7 +392,7 @@ packages:
     compiler: [gcc,intel]
     paths:
       swig@2.0.10 arch=linux-rhel7-ivybridge: /usr/share/swig/2.0.10
-    buildable: False
+#    buildable: False
   xz:
     compiler: [gcc,intel]
     paths:
