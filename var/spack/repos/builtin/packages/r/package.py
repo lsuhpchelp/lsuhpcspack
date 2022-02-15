@@ -20,6 +20,7 @@ class R(AutotoolsPackage):
     url = "https://cloud.r-project.org/src/base/R-3/R-3.4.3.tar.gz"
 
     extendable = True
+    version('4.1.2', sha256='2036225e9f7207d4ce097e54972aecdaa8b40d7d9911cd26491fac5a0fab38af')
     version('4.0.3', sha256='09983a8a78d5fb6bc45d27b1c55f9ba5265f78fa54a55c13ae691f87c5bb9e0d')
     version('4.0.2', sha256='d3bceab364da0876625e4097808b42512395fdf41292f4915ab1fd257c1bbe75')
     version('4.0.1', sha256='95fe24a4d8d8f8f888460c8f5fe4311cec656e7a1722d233218bc03861bc6f32')

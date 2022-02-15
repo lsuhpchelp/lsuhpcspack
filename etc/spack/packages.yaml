@@ -259,7 +259,7 @@ packages:
     compiler: [gcc,intel]
     paths:
       curl@7.29.0 arch=linux-rhel7-ivybridge: /usr/bin
-    buildable: False
+#    buildable: False
   openssl:
     compiler: [gcc,intel]
     paths:
