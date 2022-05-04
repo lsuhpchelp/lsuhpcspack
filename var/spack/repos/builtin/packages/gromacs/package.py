@@ -25,6 +25,7 @@ class Gromacs(CMakePackage):
     maintainers = ['junghans', 'marvinbernhardt']
 
     version('develop', branch='master')
+    version('2022', sha256='fad60d606c02e6164018692c6c9f2c159a9130c2bf32e8c5f4f1b6ba2dda2b68')
     version('2020', sha256='477e56142b3dcd9cb61b8f67b24a55760b04d1655e8684f979a75a5eec40ba01')
     version('2019.5', sha256='438061a4a2d45bbb5cf5c3aadd6c6df32d2d77ce8c715f1c8ffe56156994083a')
     version('2019.4', sha256='ba4366eedfc8a1dbf6bddcef190be8cd75de53691133f305a7f9c296e5ca1867')
@@ -111,7 +112,8 @@ class Gromacs(CMakePackage):
             options.append('-DGMX_HWLOC:BOOL=OFF')
 
         if '+cuda' in self.spec:
-            options.append('-DGMX_GPU:BOOL=ON')
+            #options.append('-DGMX_GPU:BOOL=ON')
+            options.append('-DGMX_GPU:BOOL=CUDA')
             options.append('-DCUDA_TOOLKIT_ROOT_DIR:STRING=' +
                            self.spec['cuda'].prefix)
         else:
