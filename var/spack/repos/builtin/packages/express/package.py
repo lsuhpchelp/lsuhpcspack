@@ -1,11 +1,12 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-import os.path
 import glob
+import os.path
+
+from spack import *
 
 
 class Express(CMakePackage):
@@ -27,6 +28,7 @@ class Express(CMakePackage):
     # patch from the debian package repo:
     # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=811859
     patch('gcc-6.patch', when='%gcc@6.0.0:')
+    patch('gcc-6.patch', when='%fj')
 
     def patch(self):
         with working_dir('src'):

@@ -1,13 +1,14 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+
 import pytest
 
-import spack.repo
 import spack.paths
+import spack.repo
 
 
 @pytest.fixture()
@@ -51,6 +52,11 @@ def test_repo_unknown_pkg(mutable_mock_repo):
         mutable_mock_repo.get('builtin.mock.nonexistentpackage')
 
 
+def test_repo_anonymous_pkg(mutable_mock_repo):
+    with pytest.raises(spack.repo.UnknownPackageError):
+        mutable_mock_repo.get('+variant')
+
+
 @pytest.mark.maybeslow
 def test_repo_last_mtime():
     latest_mtime = max(os.path.getmtime(p.module.__file__)
@@ -62,3 +68,21 @@ def test_repo_invisibles(mutable_mock_repo, extra_repo):
     with open(os.path.join(extra_repo.root, 'packages', '.invisible'), 'w'):
         pass
     extra_repo.all_package_names()
+
+
+@pytest.mark.parametrize('attr_name,exists', [
+    ('cmake', True),
+    ('__sphinx_mock__', False)
+])
+@pytest.mark.regression('20661')
+def test_namespace_hasattr(attr_name, exists, mutable_mock_repo):
+    # Check that we don't fail on 'hasattr' checks because
+    # of a custom __getattr__ implementation
+    nms = spack.repo.SpackNamespace('spack.pkg.builtin.mock')
+    assert hasattr(nms, attr_name) == exists
+
+
+@pytest.mark.regression('24552')
+def test_all_package_names_is_cached_correctly():
+    assert 'mpi' in spack.repo.all_package_names(include_virtuals=True)
+    assert 'mpi' not in spack.repo.all_package_names(include_virtuals=False)

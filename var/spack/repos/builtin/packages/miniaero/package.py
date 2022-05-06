@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,21 +12,22 @@ class Miniaero(MakefilePackage):
        of programming models and hardware for next generation platforms.
     """
 
-    homepage = "http://mantevo.org"
+    homepage = "https://mantevo.org"
     git      = "https://github.com/Mantevo/miniAero.git"
 
     tags = ['proxy-app']
 
     version('2016-11-11', commit='f46d135479a5be19ec5d146ccaf0e581aeff4596')
 
-    depends_on('kokkos')
+    depends_on('kokkos-legacy')
 
     @property
     def build_targets(self):
         targets = [
             '--directory=kokkos',
             'CXX=c++',
-            'KOKKOS_PATH={0}'.format(self.spec['kokkos'].prefix)
+            'KOKKOS_PATH={0}'.format(
+                self.spec['kokkos-legacy'].prefix)
         ]
 
         return targets

@@ -1,13 +1,14 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.main import SpackCommand
 import os.path
+
 import pytest
 
 import spack.util.spack_yaml as s_yaml
+from spack.main import SpackCommand
 
 activate = SpackCommand('activate')
 extensions = SpackCommand('extensions')
@@ -24,7 +25,8 @@ def create_projection_file(tmpdir, projection):
     return projection_file
 
 
-@pytest.mark.parametrize('cmd', ['hardlink', 'symlink', 'hard', 'add'])
+@pytest.mark.parametrize('cmd', ['hardlink', 'symlink', 'hard', 'add',
+                                 'copy', 'relocate'])
 def test_view_link_type(
         tmpdir, mock_packages, mock_archive, mock_fetch, config,
         install_mockery, cmd):
@@ -33,10 +35,29 @@ def test_view_link_type(
     view(cmd, viewpath, 'libdwarf')
     package_prefix = os.path.join(viewpath, 'libdwarf')
     assert os.path.exists(package_prefix)
-    assert os.path.islink(package_prefix) == (not cmd.startswith('hard'))
+
+    # Check that we use symlinks for and only for the appropriate subcommands
+    is_link_cmd = cmd in ('symlink', 'add')
+    assert os.path.islink(package_prefix) == is_link_cmd
 
 
-@pytest.mark.parametrize('cmd', ['hardlink', 'symlink', 'hard', 'add'])
+@pytest.mark.parametrize('add_cmd', ['hardlink', 'symlink', 'hard', 'add',
+                                     'copy', 'relocate'])
+def test_view_link_type_remove(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery, add_cmd):
+    install('needs-relocation')
+    viewpath = str(tmpdir.mkdir('view_{0}'.format(add_cmd)))
+    view(add_cmd, viewpath, 'needs-relocation')
+    bindir = os.path.join(viewpath, 'bin')
+    assert os.path.exists(bindir)
+
+    view('remove', viewpath, 'needs-relocation')
+    assert not os.path.exists(bindir)
+
+
+@pytest.mark.parametrize('cmd', ['hardlink', 'symlink', 'hard', 'add',
+                                 'copy', 'relocate'])
 def test_view_projections(
         tmpdir, mock_packages, mock_archive, mock_fetch, config,
         install_mockery, cmd):
@@ -54,7 +75,10 @@ def test_view_projections(
 
     package_prefix = os.path.join(viewpath, 'libdwarf-20130207/libdwarf')
     assert os.path.exists(package_prefix)
-    assert os.path.islink(package_prefix) == (not cmd.startswith('hard'))
+
+    # Check that we use symlinks for and only for the appropriate subcommands
+    is_symlink_cmd = cmd in ('symlink', 'add')
+    assert os.path.islink(package_prefix) == is_symlink_cmd
 
 
 def test_view_multiple_projections(

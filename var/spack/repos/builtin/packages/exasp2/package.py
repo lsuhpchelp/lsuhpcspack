@@ -1,10 +1,7 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-import glob
 
 
 class Exasp2(MakefilePackage):
@@ -21,11 +18,13 @@ class Exasp2(MakefilePackage):
     allowing others to extend and/or reimplement as needed to test performance
     of new architectures, programming models, etc."""
 
-    tags = ['proxy-app']
-
     homepage = "https://github.com/ECP-copa/ExaSP2"
     url      = "https://github.com/ECP-copa/ExaSP2/tarball/v1.0"
     git      = "https://github.com/ECP-copa/ExaSP2.git"
+
+    maintainers = ["junghans"]
+
+    tags = ['proxy-app', 'ecp-proxy-app']
 
     version('develop', branch='master')
     version('1.0', sha256='59986ea70391a1b382d2ed22d5cf013f46c0c15e44ed95dcd875a917adfc6211')
@@ -70,7 +69,6 @@ class Exasp2(MakefilePackage):
     def install(self, spec, prefix):
         mkdir(prefix.bin)
         mkdir(prefix.doc)
-        for files in glob.glob('bin/ExaSP2-*'):
-            install(files, prefix.bin)
+        install('bin/ExaSP2-*', prefix.bin)
         install('LICENSE.md', prefix.doc)
         install('README.md', prefix.doc)

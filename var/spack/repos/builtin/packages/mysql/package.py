@@ -1,10 +1,11 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from spack import *
 import os
 import tempfile
+
+from spack import *
 
 
 class Mysql(CMakePackage):
@@ -22,6 +23,7 @@ class Mysql(CMakePackage):
     version('8.0.13', sha256='d85eb7f98b6aa3e2c6fe38263bf40b22acb444a4ce1f4668473e9e59fb98d62e')
     version('8.0.12', sha256='69f16e20834dbc60cb28d6df7351deda323330b9de685d22415f135bcedd1b20')
     version('8.0.11', sha256='3bde3e30d5d4afcedfc6db9eed5c984237ac7db9480a9cc3bddc026d50700bf9')
+    version('5.7.27', sha256='f8b65872a358d6f5957de86715c0a3ef733b60451dad8d64a8fd1a92bf091bba')
     version('5.7.26', sha256='5f01d579a20199e06fcbc28f0801c3cb545a54a2863ed8634f17fe526480b9f1')
     version('5.7.25', sha256='53751c6243806103114567c1a8b6a3ec27f23c0e132f377a13ce1eb56c63723f')
     version('5.7.24', sha256='05bf0c92c6a97cf85b67fff1ac83ca7b3467aea2bf306374d727fa4f18431f87')
@@ -53,7 +55,7 @@ class Mysql(CMakePackage):
             description='Use the specified C++ standard when building.')
 
     # 5.7.X cannot be compiled client-only.
-    conflicts('+client_only', when='@5.7.0:5.7.999')
+    conflicts('+client_only', when='@5.7.0:5.7')
     # Server code has a macro 'byte', which conflicts with C++17's
     # std::byte.
     conflicts('cxxstd=17', when='@8.0.0:~client_only')
@@ -63,12 +65,12 @@ class Mysql(CMakePackage):
     # https://dev.mysql.com/doc/refman/8.0/en/source-installation.html
 
     # See CMAKE_MINIMUM_REQUIRED in CMakeLists.txt
-    depends_on('cmake@3.1.0:', type='build', when='@5.7.0:5.7.999 platform=win32')
+    depends_on('cmake@3.1.0:', type='build', when='@5.7.0:5.7 platform=win32')
     depends_on('cmake@3.8.0:', type='build', when='@8.0.0: platform=win32')
     depends_on('cmake@3.9.2:', type='build', when='@8.0.0: platform=darwin')
     depends_on('cmake@3.4.0:', type='build', when='@8.0.0: platform=solaris')
-    depends_on('cmake@2.6:', type='build', when='@:5.6.999')
-    depends_on('cmake@2.8.9:', type='build', when='@5.7.0:5.7.999')
+    depends_on('cmake@2.6:', type='build', when='@:5.6')
+    depends_on('cmake@2.8.9:', type='build', when='@5.7.0:5.7')
     depends_on('cmake@2.8.12:', type='build', when='@8.0.0:')
 
     depends_on('gmake@3.75:', type='build')
@@ -77,11 +79,16 @@ class Mysql(CMakePackage):
 
     # Each version of MySQL requires a specific version of boost
     # See BOOST_PACKAGE_NAME in cmake/boost.cmake
-    # 8.0.16+
-    depends_on('boost@1.69.0 cxxstd=98', type='build', when='@8.0.16: cxxstd=98')
-    depends_on('boost@1.69.0 cxxstd=11', type='build', when='@8.0.16: cxxstd=11')
-    depends_on('boost@1.69.0 cxxstd=14', type='build', when='@8.0.16: cxxstd=14')
-    depends_on('boost@1.69.0 cxxstd=17', type='build', when='@8.0.16: cxxstd=17')
+    # 8.0.19+
+    depends_on('boost@1.70.0 cxxstd=98', type='build', when='@8.0.19: cxxstd=98')
+    depends_on('boost@1.70.0 cxxstd=11', type='build', when='@8.0.19: cxxstd=11')
+    depends_on('boost@1.70.0 cxxstd=14', type='build', when='@8.0.19: cxxstd=14')
+    depends_on('boost@1.70.0 cxxstd=17', type='build', when='@8.0.19: cxxstd=17')
+    # 8.0.16--8.0.18
+    depends_on('boost@1.69.0 cxxstd=98', type='build', when='@8.0.16:8.0.18 cxxstd=98')
+    depends_on('boost@1.69.0 cxxstd=11', type='build', when='@8.0.16:8.0.18 cxxstd=11')
+    depends_on('boost@1.69.0 cxxstd=14', type='build', when='@8.0.16:8.0.18 cxxstd=14')
+    depends_on('boost@1.69.0 cxxstd=17', type='build', when='@8.0.16:8.0.18 cxxstd=17')
     # 8.0.14--8.0.15
     depends_on('boost@1.68.0 cxxstd=98', type='build', when='@8.0.14:8.0.15 cxxstd=98')
     depends_on('boost@1.68.0 cxxstd=11', type='build', when='@8.0.14:8.0.15 cxxstd=11')
@@ -98,19 +105,22 @@ class Mysql(CMakePackage):
     depends_on('boost@1.66.0 cxxstd=14', type='build', when='@8.0.11 cxxstd=14')
     depends_on('boost@1.66.0 cxxstd=17', type='build', when='@8.0.11 cxxstd=17')
     # 5.7.X
-    depends_on('boost@1.59.0 cxxstd=98', when='@5.7.0:5.7.999 cxxstd=98')
-    depends_on('boost@1.59.0 cxxstd=11', when='@5.7.0:5.7.999 cxxstd=11')
-    depends_on('boost@1.59.0 cxxstd=14', when='@5.7.0:5.7.999 cxxstd=14')
-    depends_on('boost@1.59.0 cxxstd=17', when='@5.7.0:5.7.999 cxxstd=17')
+    depends_on('boost@1.59.0 cxxstd=98', when='@5.7.0:5.7 cxxstd=98')
+    depends_on('boost@1.59.0 cxxstd=11', when='@5.7.0:5.7 cxxstd=11')
+    depends_on('boost@1.59.0 cxxstd=14', when='@5.7.0:5.7 cxxstd=14')
+    depends_on('boost@1.59.0 cxxstd=17', when='@5.7.0:5.7 cxxstd=17')
 
+    depends_on('rpcsvc-proto')
     depends_on('ncurses')
     depends_on('openssl')
-    depends_on('libtirpc', when='@5.7.0:')
-    depends_on('perl', type=['build', 'test'], when='@:7.99.99')
+    depends_on('libtirpc', when='@5.7.0: platform=linux')
+    depends_on('libedit', type=['build', 'run'])
+    depends_on('perl', type=['build', 'test'], when='@:7')
     depends_on('bison@2.1:', type='build')
     depends_on('m4', type='build', when='@develop platform=solaris')
+    depends_on('cyrus-sasl', when='@:5.7')
 
-    patch('fix-no-server-5.5.patch', level=1, when='@5.5.0:5.5.999')
+    patch('fix-no-server-5.5.patch', level=1, when='@5.5.0:5.5')
 
     def url_for_version(self, version):
         url = "https://dev.mysql.com/get/Downloads/MySQL-{0}/mysql-{1}.tar.gz"
@@ -123,6 +133,11 @@ class Mysql(CMakePackage):
             options.append('-DBOOST_ROOT={0}'.format(spec['boost'].prefix))
         if '+client_only' in self.spec:
             options.append('-DWITHOUT_SERVER:BOOL=ON')
+        options.append('-DWITH_EDITLINE=system')
+        options.append('-Dlibedit_INCLUDE_DIR={0}'.format(
+            spec['libedit'].prefix.include))
+        options.append('-Dlibedit_LIBRARY={0}'.format(
+            spec['libedit'].libs.directories[0]))
         return options
 
     def _fix_dtrace_shebang(self, env):
@@ -159,5 +174,5 @@ class Mysql(CMakePackage):
                 env.append_flags('CXXFLAGS', '-Wno-error=register')
 
         if 'python' in self.spec.flat_dependencies() and \
-           self.spec.satisfies('@:7.99.99'):
+           self.spec.satisfies('@:7'):
             self._fix_dtrace_shebang(env)

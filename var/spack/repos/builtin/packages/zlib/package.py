@@ -1,20 +1,19 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
 
 
 # Although zlib comes with a configure script, it does not use Autotools
 # The AutotoolsPackage causes zlib to fail to build with PGI
 class Zlib(Package):
     """A free, general-purpose, legally unencumbered lossless
-       data-compression library."""
+    data-compression library.
+    """
 
-    homepage = "http://zlib.net"
+    homepage = "https://zlib.net"
     # URL must remain http:// so Spack can bootstrap curl
-    url = "http://zlib.net/fossils/zlib-1.2.11.tar.gz"
+    url = "https://zlib.net/fossils/zlib-1.2.11.tar.gz"
 
     version('1.2.11', sha256='c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1')
     # Due to the bug fixes, any installations of 1.2.9 or 1.2.10 should be
@@ -40,7 +39,7 @@ class Zlib(Package):
 
     def setup_build_environment(self, env):
         if '+pic' in self.spec:
-            env.append_flags('CFLAGS', self.compiler.pic_flag)
+            env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
         if '+optimize' in self.spec:
             env.append_flags('CFLAGS', '-O2')
 

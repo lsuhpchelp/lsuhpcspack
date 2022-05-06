@@ -1,7 +1,9 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import platform
 
 from spack import *
 
@@ -9,7 +11,7 @@ from spack import *
 class Bwa(Package):
     """Burrow-Wheeler Aligner for pairwise alignment between DNA sequences."""
 
-    homepage = "http://github.com/lh3/bwa"
+    homepage = "https://github.com/lh3/bwa"
     url      = "https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2"
 
     version('0.7.17', sha256='de1b4d4e745c0b7fc3e107b5155a51ac063011d33a5d82696331ecf4bed8d0fd')
@@ -19,12 +21,29 @@ class Bwa(Package):
             url='https://github.com/lh3/bwa/archive/0.7.12.tar.gz')
 
     depends_on('zlib')
+    depends_on('sse2neon', when='target=aarch64:')
+
+    patch('bwa_for_aarch64.patch', sha256='b77213b16cf8760f01e32f9a0b2cd8988cf7bac48a11267100f703cbd55c4bfd', when='target=aarch64:')
 
     def install(self, spec, prefix):
-        filter_file(r'^INCLUDES=',
-                    "INCLUDES=-I%s" % spec['zlib'].prefix.include, 'Makefile')
+        zlib_inc_path = spec['zlib'].prefix.include
+        if platform.machine() == 'aarch64':
+            sse2neon_inc_path = spec['sse2neon'].prefix.include
+            filter_file(r'^INCLUDES=', "INCLUDES=-I%s -I%s" %
+                        (zlib_inc_path, sse2neon_inc_path),
+                        'Makefile')
+        else:
+            filter_file(r'^INCLUDES=', "INCLUDES=-I%s" %
+                        zlib_inc_path, 'Makefile')
         filter_file(r'^LIBS=', "LIBS=-L%s " % spec['zlib'].prefix.lib,
                     'Makefile')
+        # use spack C compiler
+        filter_file('^CC=.*', 'CC={0}'.format(spack_cc), 'Makefile')
+        # fix gcc 10+ errors
+        if self.spec.satisfies('%gcc@10:'):
+            filter_file('const uint8_t rle_auxtab[8]',
+                        'extern const uint8_t rle_auxtab[8]',
+                        'rle.h', string=True)
         make()
 
         mkdirp(prefix.bin)

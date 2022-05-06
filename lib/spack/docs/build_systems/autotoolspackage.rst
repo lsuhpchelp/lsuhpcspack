@@ -1,4 +1,4 @@
-.. Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -112,20 +112,44 @@ phase runs:
 
 .. code-block:: console
 
-   $ libtoolize
-   $ aclocal
-   $ autoreconf --install --verbose --force
+   $ autoreconf --install --verbose --force -I <aclocal-prefix>/share/aclocal
 
-All you need to do is add a few Autotools dependencies to the package.
-Most stable releases will come with a ``configure`` script, but if you
-check out a commit from the ``develop`` branch, you would want to add:
+In case you need to add more arguments, override ``autoreconf_extra_args``
+in your ``package.py`` on class scope like this:
 
 .. code-block:: python
 
-   depends_on('autoconf', type='build', when='@develop')
-   depends_on('automake', type='build', when='@develop')
-   depends_on('libtool',  type='build', when='@develop')
-   depends_on('m4',       type='build', when='@develop')
+   autoreconf_extra_args = ["-Im4"]
+
+All you need to do is add a few Autotools dependencies to the package.
+Most stable releases will come with a ``configure`` script, but if you
+check out a commit from the ``master`` branch, you would want to add:
+
+.. code-block:: python
+
+   depends_on('autoconf', type='build', when='@master')
+   depends_on('automake', type='build', when='@master')
+   depends_on('libtool',  type='build', when='@master')
+
+It is typically redundant to list the ``m4`` macro processor package as a
+dependency, since ``autoconf`` already depends on it.
+
+"""""""""""""""""""""""""""""""
+Using a custom autoreconf phase
+"""""""""""""""""""""""""""""""
+
+In some cases, it might be needed to replace the default implementation
+of the autoreconf phase with one running a script interpreter. In this
+example, the ``bash`` shell is used to run the ``autogen.sh`` script.
+
+.. code-block:: python
+
+   def autoreconf(self, spec, prefix):
+       which('bash')('autogen.sh')
+
+"""""""""""""""""""""""""""""""""""""""
+patching configure or Makefile.in files
+"""""""""""""""""""""""""""""""""""""""
 
 In some cases, developers might need to distribute a patch that modifies
 one of the files used to generate ``configure`` or ``Makefile.in``.
@@ -134,6 +158,57 @@ preferable to regenerate these manually using the patch, and then
 create a new patch that directly modifies ``configure``. That way,
 Spack can use the secondary patch and additional build system
 dependencies aren't necessary.
+
+""""""""""""""""""""""""""""
+Old Autotools helper scripts
+""""""""""""""""""""""""""""
+
+Autotools based tarballs come with helper scripts such as ``config.sub`` and
+``config.guess``. It is the responsibility of the developers to keep these files
+up to date so that they run on every platform, but for very old software
+releases this is impossible. In these cases Spack can help to replace these
+files with newer ones, without having to add the heavy dependency on
+``automake``.
+
+Automatic helper script replacement is currently enabled by default on
+``ppc64le`` and ``aarch64``, as these are the known cases where old scripts fail.
+On these targets, ``AutotoolsPackage`` adds a build dependency on ``gnuconfig``,
+which is a very light-weight package with newer versions of the helper files.
+Spack then tries to run all the helper scripts it can find in the release, and
+replaces them on failure with the helper scripts from ``gnuconfig``.
+
+To opt out of this feature, use the following setting:
+
+.. code-block:: python
+
+   patch_config_files = False
+
+To enable it conditionally on different architectures, define a property and
+make the package depend on ``gnuconfig`` as a build dependency:
+
+.. code-block
+
+   depends_on('gnuconfig', when='@1.0:')
+
+   @property
+   def patch_config_files(self):
+      return self.spec.satisfies("@1.0:")
+
+.. note::
+
+    On some exotic architectures it is necessary to use system provided
+    ``config.sub`` and ``config.guess`` files. In this case, the most
+    transparent solution is to mark the ``gnuconfig`` package as external and
+    non-buildable, with a prefix set to the directory containing the files:
+
+   .. code-block:: yaml
+
+       gnuconfig:
+         buildable: false
+         externals:
+         - spec: gnuconfig@master
+           prefix: /usr/share/configure_files/
+
 
 """"""""""""""""
 force_autoreconf
@@ -155,7 +230,7 @@ version, this can be done like so:
 
    @property
    def force_autoreconf(self):
-       return self.version == Version('1.2.3'):
+       return self.version == Version('1.2.3')
 
 ^^^^^^^^^^^^^^^^^^^^^^^
 Finding configure flags
@@ -233,7 +308,145 @@ You may have noticed that most of the Autotools flags are of the form
 ``--without-baz``. Since these flags are so common, Spack provides a
 couple of helper functions to make your life easier.
 
-TODO: document ``with_or_without`` and ``enable_or_disable``.
+"""""""""""""""""
+enable_or_disable
+"""""""""""""""""
+
+Autotools flags for simple boolean variants can be automatically
+generated by calling the ``enable_or_disable`` method. This is
+typically used to enable or disable some feature within the package.
+
+.. code-block:: python
+
+   variant(
+       'memchecker',
+       default=False,
+       description='Memchecker support for debugging [degrades performance]'
+   )
+   config_args.extend(self.enable_or_disable('memchecker'))
+
+In this example, specifying the variant ``+memchecker`` will generate
+the following configuration options:
+
+.. code-block:: console
+
+   --enable-memchecker
+
+"""""""""""""""
+with_or_without
+"""""""""""""""
+
+Autotools flags for more complex variants, including boolean variants
+and multi-valued variants, can be automatically generated by calling
+the ``with_or_without`` method.
+
+.. code-block:: python
+
+   variant(
+       'schedulers',
+       values=disjoint_sets(
+           ('auto',), ('alps', 'lsf', 'tm', 'slurm', 'sge', 'loadleveler')
+       ).with_non_feature_values('auto', 'none'),
+       description="List of schedulers for which support is enabled; "
+       "'auto' lets openmpi determine",
+   )
+   if 'schedulers=auto' not in spec:
+       config_args.extend(self.with_or_without('schedulers'))
+
+In this example, specifying the variant ``schedulers=slurm,sge`` will
+generate the following configuration options:
+
+.. code-block:: console
+
+   --with-slurm --with-sge
+
+``enable_or_disable`` is actually functionally equivalent with
+``with_or_without``, and accepts the same arguments and variant types;
+but idiomatic autotools packages often follow these naming
+conventions.
+
+""""""""""""""""
+activation_value
+""""""""""""""""
+
+Autotools parameters that require an option can still be automatically
+generated, using the ``activation_value`` argument to
+``with_or_without`` (or, rarely, ``enable_or_disable``).
+
+.. code-block:: python
+
+   variant(
+      'fabrics',
+       values=disjoint_sets(
+           ('auto',), ('psm', 'psm2', 'verbs', 'mxm', 'ucx', 'libfabric')
+       ).with_non_feature_values('auto', 'none'),
+       description="List of fabrics that are enabled; "
+       "'auto' lets openmpi determine",
+   )
+   if 'fabrics=auto' not in spec:
+       config_args.extend(self.with_or_without('fabrics',
+           activation_value='prefix'))
+
+``activation_value`` accepts a callable that generates the configure
+parameter value given the variant value; but the special value
+``prefix`` tells Spack to automatically use the dependenency's
+installation prefix, which is the most common use for such
+parameters. In this example, specifying the variant
+``fabrics=libfabric`` will generate the following configuration
+options:
+
+.. code-block:: console
+
+   --with-libfabric=</path/to/libfabric>
+
+"""""""""""""""""""""""
+The ``variant`` keyword
+"""""""""""""""""""""""
+
+When Spack variants and configure flags do not correspond one-to-one, the
+``variant`` keyword can be passed to ``with_or_without`` and
+``enable_or_disable``. For example:
+
+.. code-block:: python
+
+   variant('debug_tools', default=False)
+   config_args += self.enable_or_disable('debug-tools', variant='debug_tools')
+
+Or when one variant controls multiple flags:
+
+.. code-block:: python
+
+   variant('debug_tools', default=False)
+   config_args += self.with_or_without('memchecker', variant='debug_tools')
+   config_args += self.with_or_without('profiler', variant='debug_tools')
+
+""""""""""""""""""""
+Activation overrides
+""""""""""""""""""""
+
+Finally, the behavior of either ``with_or_without`` or
+``enable_or_disable`` can be overridden for specific variant
+values. This is most useful for multi-values variants where some of
+the variant values require atypical behavior.
+
+.. code-block:: python
+
+   def with_or_without_verbs(self, activated):
+       # Up through version 1.6, this option was named --with-openib.
+       # In version 1.7, it was renamed to be --with-verbs.
+       opt = 'verbs' if self.spec.satisfies('@1.7:') else 'openib'
+       if not activated:
+           return '--without-{0}'.format(opt)
+       return '--with-{0}={1}'.format(opt, self.spec['rdma-core'].prefix)
+
+Defining ``with_or_without_verbs`` overrides the behavior of a
+``fabrics=verbs`` variant, changing the configure-time option to
+``--with-openib`` for older versions of the package and specifying an
+alternative dependency name:
+
+.. code-block::
+
+   --with-openib=</path/to/rdma-core>
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Configure script in a sub-directory

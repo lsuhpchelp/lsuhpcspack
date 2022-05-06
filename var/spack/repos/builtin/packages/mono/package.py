@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,9 @@ class Mono(AutotoolsPackage):
        standards for C# and the Common Language Runtime.
     """
 
-    homepage = "http://www.mono-project.com/"
+    homepage = "https://www.mono-project.com/"
     url      = "https://download.mono-project.com/sources/mono/mono-5.0.1.1.tar.bz2"
+    maintainers = ['grospelliergilles']
 
     # /usr/share/.mono/keypairs needs to exist or be able to be
     # created, e.g. https://github.com/gentoo/dotnet/issues/6
@@ -25,9 +26,14 @@ class Mono(AutotoolsPackage):
     # Spack's openssl interacts badly with mono's vendored
     # "boringssl", don't drag it in w/ cmake
     depends_on('cmake~openssl', type=('build'))
-    depends_on('libiconv')
+    depends_on('iconv')
     depends_on('perl', type=('build'))
+    depends_on('python', type=('build'))
 
+    version('6.12.0.122', sha256='29c277660fc5e7513107aee1cbf8c5057c9370a4cdfeda2fc781be6986d89d23',
+            url='https://download.mono-project.com/sources/mono/mono-6.12.0.122.tar.xz')
+    version('6.8.0.123', sha256='e2e42d36e19f083fc0d82f6c02f7db80611d69767112af353df2f279744a2ac5',
+            url='https://download.mono-project.com/sources/mono/mono-6.8.0.123.tar.xz')
     version('6.8.0.105', sha256='578799c44c3c86a9eb5daf6dec6c60a24341940fd376371956d4a46cf8612178',
             url='https://download.mono-project.com/sources/mono/mono-6.8.0.105.tar.xz')
     version('5.18.0.240', sha256='143e80eb00519ff496742e78ee07403a3c3629437f3a498eee539de8108da895')
@@ -50,6 +56,6 @@ class Mono(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        li = self.spec['libiconv'].prefix
+        li = self.spec['iconv'].prefix
         args.append('--with-libiconv-prefix={p}'.format(p=li))
         return args

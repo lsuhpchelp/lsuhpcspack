@@ -1,12 +1,15 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import sys
+
 from spack import *
+from spack.build_environment import dso_suffix
 from spack.operating_systems.mac_os import macos_version
+from spack.pkg.builtin.kokkos import Kokkos
 
 # Trilinos is complicated to build, as an inspiration a couple of links to
 # other repositories which build it:
@@ -18,7 +21,7 @@ from spack.operating_systems.mac_os import macos_version
 # https://github.com/trilinos/Trilinos/issues/175
 
 
-class Trilinos(CMakePackage):
+class Trilinos(CMakePackage, CudaPackage):
     """The Trilinos Project is an effort to develop algorithms and enabling
     technologies within an object-oriented software framework for the solution
     of large-scale, complex multi-physics engineering and scientific problems.
@@ -28,13 +31,17 @@ class Trilinos(CMakePackage):
     url      = "https://github.com/trilinos/Trilinos/archive/trilinos-release-12-12-1.tar.gz"
     git      = "https://github.com/trilinos/Trilinos.git"
 
-    maintainers = ['aprokop', 'keitat']
+    maintainers = ['keitat', 'sethrj', 'kuberry']
+
+    tags = ['e4s']
 
     # ###################### Versions ##########################
 
-    version('xsdk-0.2.0', tag='xsdk-0.2.0')
-    version('develop', branch='develop')
     version('master', branch='master')
+    version('develop', branch='develop')
+    version('13.2.0', commit='4a5f7906a6420ee2f9450367e9cc95b28c00d744')  # tag trilinos-release-13-2-0
+    version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d', preferred=True)  # tag trilinos-release-13-0-1
+    version('13.0.0', commit='9fec35276d846a667bc668ff4cbdfd8be0dfea08')  # tag trilinos-release-13-0-0
     version('12.18.1', commit='55a75997332636a28afc9db1aee4ae46fe8d93e7')  # tag trilinos-release-12-8-1
     version('12.14.1', sha256='52a4406cca2241f5eea8e166c2950471dd9478ad6741cbb2a7fc8225814616f0')
     version('12.12.1', sha256='5474c5329c6309224a7e1726cf6f0d855025b2042959e4e2be2748bd6bb49e18')
@@ -53,219 +60,186 @@ class Trilinos(CMakePackage):
 
     # ###################### Variants ##########################
 
-    # Other
-    # not everyone has py-numpy activated, keep it disabled by default to avoid
-    # configure errors
-    variant('python',       default=False,
-            description='Build python wrappers')
-
     # Build options
-    variant('complex', default=False,
-            description='Enable complex numbers in Trilinos')
-    variant('explicit_template_instantiation',  default=True,
-            description='Enable explicit template instantiation (ETI)')
-    variant('float', default=False,
-            description='Enable single precision (float) numbers in Trilinos')
-    variant('fortran',      default=True,
-            description='Compile with Fortran support')
-    variant('openmp',       default=False,
-            description='Enable OpenMP')
-    variant('shared',       default=True,
-            description='Enables the build of shared libraries')
-    variant('debug',       default=False,
-            description='Enable runtime safety and debug checks')
-    variant('xsdkflags',    default=False,
-            description='Compile using the default xSDK configuration')
+    variant('complex', default=False, description='Enable complex numbers in Trilinos')
+    variant('cuda_rdc', default=False, description='turn on RDC for CUDA build')
+    variant('cxxstd', default='14', values=['11', '14', '17'], multi=False)
+    variant('debug', default=False, description='Enable runtime safety and debug checks')
+    variant('explicit_template_instantiation', default=True, description='Enable explicit template instantiation (ETI)')
+    variant('float', default=False, description='Enable single precision (float) numbers in Trilinos')
+    variant('fortran', default=True, description='Compile with Fortran support')
+    variant('gotype', default='long_long',
+            values=('int', 'long', 'long_long', 'all'),
+            multi=False,
+            description='global ordinal type for Tpetra')
+    variant('openmp', default=False, description='Enable OpenMP')
+    variant('python', default=False, description='Build PyTrilinos wrappers')
+    variant('shared', default=True, description='Enables the build of shared libraries')
+    variant('wrapper', default=False, description="Use nvcc-wrapper for CUDA build")
 
     # TPLs (alphabet order)
-    variant('boost',        default=True,
-            description='Compile with Boost')
-    variant('cgns',         default=False,
-            description='Enable CGNS')
-    variant('adios2',         default=False,
-            description='Enable ADIOS2')
-    variant('gtest',        default=True,
-            description='Compile with Gtest')
-    variant('hdf5',         default=True,
-            description='Compile with HDF5')
-    variant('hypre',        default=True,
-            description='Compile with Hypre preconditioner')
-    variant('metis',        default=True,
-            description='Compile with METIS and ParMETIS')
-    variant('mumps',        default=True,
-            description='Compile with support for MUMPS solvers')
-    variant('pnetcdf',      default=False,
-            description='Compile with parallel-netcdf')
-    variant('suite-sparse', default=True,
-            description='Compile with SuiteSparse solvers')
-    variant('superlu-dist', default=False,
-            description='Compile with SuperluDist solvers')
-    variant('superlu',      default=False,
-            description='Compile with SuperLU solvers')
-    variant('x11',          default=False,
-            description='Compile with X11')
-    variant('zlib',         default=False,
-            description='Compile with zlib')
+    variant('adios2',       default=False, description='Enable ADIOS2')
+    variant('boost',        default=False, description='Compile with Boost')
+    variant('hdf5',         default=False, description='Compile with HDF5')
+    variant('hypre',        default=False, description='Compile with Hypre preconditioner')
+    variant('mpi',          default=True, description='Compile with MPI parallelism')
+    variant('mumps',        default=False, description='Compile with support for MUMPS solvers')
+    variant('suite-sparse', default=False, description='Compile with SuiteSparse solvers')
+    variant('superlu-dist', default=False, description='Compile with SuperluDist solvers')
+    variant('superlu',      default=False, description='Compile with SuperLU solvers')
+    variant('strumpack',    default=False, description='Compile with STRUMPACK solvers')
+    variant('x11',          default=False, description='Compile with X11 when +exodus')
 
     # Package options (alphabet order)
-    variant('alloptpkgs',   default=False,
-            description='Compile with all optional packages')
-    variant('amesos',       default=True,
-            description='Compile with Amesos')
-    variant('amesos2',      default=True,
-            description='Compile with Amesos2')
-    variant('anasazi',      default=True,
-            description='Compile with Anasazi')
-    variant('aztec',        default=True,
-            description='Compile with Aztec')
-    variant('belos',        default=True,
-            description='Compile with Belos')
-    # chaco is disabled by default. As of 12.14.1 libchaco.so
-    # has the global symbol divide (and maybe others) that can
-    # lead to symbol clash.
-    variant('chaco',       default=False,
-            description='Compile with Chaco from SEACAS')
-    variant('epetra',       default=True,
-            description='Compile with Epetra')
-    variant('epetraext',    default=True,
-            description='Compile with EpetraExt')
-    variant('exodus',       default=True,
-            description='Compile with Exodus from SEACAS')
-    variant('ifpack',       default=True,
-            description='Compile with Ifpack')
-    variant('ifpack2',      default=True,
-            description='Compile with Ifpack2')
-    variant('intrepid',     default=False,
-            description='Enable Intrepid')
-    variant('intrepid2',    default=False,
-            description='Enable Intrepid2')
-    variant('isorropia',    default=False,
-            description='Compile with Isorropia')
-    variant('kokkos',       default=True,
-            description='Compile with Kokkos')
-    variant('ml',           default=True,
-            description='Compile with ML')
-    variant('minitensor',   default=False,
-            description='Compile with MiniTensor')
-    variant('muelu',        default=True,
-            description='Compile with Muelu')
-    variant('nox',          default=False,
-            description='Compile with NOX')
-    variant('piro',         default=False,
-            description='Compile with Piro')
-    variant('phalanx',      default=False,
-            description='Compile with Phalanx')
-    variant('rol',          default=False,
-            description='Compile with ROL')
-    variant('rythmos',      default=False,
-            description='Compile with Rythmos')
-    variant('sacado',       default=True,
-            description='Compile with Sacado')
-    variant('stk',          default=False,
-            description='Compile with STK')
-    variant('shards',       default=False,
-            description='Compile with Shards')
-    variant('shylu',        default=False,
-            description='Compile with ShyLU')
-    variant('teko',         default=False,
-            description='Compile with Teko')
-    variant('tempus',       default=False,
-            description='Compile with Tempus')
-    variant('teuchos',      default=True,
-            description='Compile with Teuchos')
-    variant('tpetra',       default=True,
-            description='Compile with Tpetra')
-    variant('zoltan',       default=True,
-            description='Compile with Zoltan')
-    variant('zoltan2',      default=True,
-            description='Compile with Zoltan2')
+    variant('amesos',       default=True, description='Compile with Amesos')
+    variant('amesos2',      default=True, description='Compile with Amesos2')
+    variant('anasazi',      default=True, description='Compile with Anasazi')
+    variant('aztec',        default=True, description='Compile with Aztec')
+    variant('belos',        default=True, description='Compile with Belos')
+    variant('chaco',        default=False, description='Compile with Chaco from SEACAS')
+    variant('epetra',       default=True, description='Compile with Epetra')
+    variant('epetraext',    default=True, description='Compile with EpetraExt')
+    variant('exodus',       default=False, description='Compile with Exodus from SEACAS')
+    variant('ifpack',       default=True, description='Compile with Ifpack')
+    variant('ifpack2',      default=True, description='Compile with Ifpack2')
+    variant('intrepid',     default=False, description='Enable Intrepid')
+    variant('intrepid2',    default=False, description='Enable Intrepid2')
+    variant('isorropia',    default=False, description='Compile with Isorropia')
+    variant('gtest',        default=False, description='Build vendored Googletest')
+    variant('kokkos',       default=True, description='Compile with Kokkos')
+    variant('ml',           default=True, description='Compile with ML')
+    variant('minitensor',   default=False, description='Compile with MiniTensor')
+    variant('muelu',        default=True, description='Compile with Muelu')
+    variant('nox',          default=False, description='Compile with NOX')
+    variant('piro',         default=False, description='Compile with Piro')
+    variant('phalanx',      default=False, description='Compile with Phalanx')
+    variant('rol',          default=False, description='Compile with ROL')
+    variant('rythmos',      default=False, description='Compile with Rythmos')
+    variant('sacado',       default=True, description='Compile with Sacado')
+    variant('stk',          default=False, description='Compile with STK')
+    variant('shards',       default=False, description='Compile with Shards')
+    variant('shylu',        default=False, description='Compile with ShyLU')
+    variant('stokhos',      default=False, description='Compile with Stokhos')
+    variant('stratimikos',  default=False, description='Compile with Stratimikos')
+    variant('teko',         default=False, description='Compile with Teko')
+    variant('tempus',       default=False, description='Compile with Tempus')
+    variant('tpetra',       default=True, description='Compile with Tpetra')
+    variant('trilinoscouplings', default=False, description='Compile with TrilinosCouplings')
+    variant('zoltan',       default=False, description='Compile with Zoltan')
+    variant('zoltan2',      default=False, description='Compile with Zoltan2')
+
+    # Internal package options (alphabetical order)
+    variant('basker',                    default=False, description='Compile with the Basker solver in Amesos2')
+    variant('epetraextbtf',              default=False, description='Compile with BTF in EpetraExt')
+    variant('epetraextexperimental',     default=False, description='Compile with experimental in EpetraExt')
+    variant('epetraextgraphreorderings', default=False, description='Compile with graph reorderings in EpetraExt')
 
     # External package options
-    variant('dtk',          default=False,
-            description='Enable DataTransferKit')
-    variant('fortrilinos',  default=False,
-            description='Enable ForTrilinos')
+    variant('dtk',      default=False, description='Enable DataTransferKit (deprecated)')
+    variant('scorec',   default=False, description='Enable SCOREC')
+    variant('mesquite', default=False, description='Enable Mesquite (deprecated)')
 
     resource(name='dtk',
              git='https://github.com/ornl-cees/DataTransferKit.git',
              commit='4fe4d9d56cfd4f8a61f392b81d8efd0e389ee764',  # branch dtk-3.0
              placement='DataTransferKit',
-             when='+dtk @12.14.0:12.14.99')
+             when='+dtk @12.14.0:12.14')
     resource(name='dtk',
              git='https://github.com/ornl-cees/DataTransferKit.git',
              commit='edfa050cd46e2274ab0a0b7558caca0079c2e4ca',  # tag 3.1-rc1
              placement='DataTransferKit',
              submodules=True,
-             when='+dtk @12.18:12.18.99')
-    resource(name='dtk',
-             git='https://github.com/ornl-cees/DataTransferKit.git',
-             branch='master',
-             placement='DataTransferKit',
-             submodules=True,
-             when='+dtk @develop')
-    resource(name='fortrilinos',
-             git='https://github.com/trilinos/ForTrilinos.git',
+             when='+dtk @12.18.0:12.18')
+    resource(name='scorec',
+             git='https://github.com/SCOREC/core.git',
+             commit='73c16eae073b179e45ec625a5abe4915bc589af2',  # tag v2.2.5
+             placement='SCOREC',
+             when='+scorec')
+    resource(name='mesquite',
+             url='https://github.com/trilinos/mesquite/archive/trilinos-release-12-12-1.tar.gz',
+             sha256='e0d09b0939dbd461822477449dca611417316e8e8d8268fd795debb068edcbb5',
+             placement='packages/mesquite',
+             when='+mesquite @12.12.1:12.16')
+    resource(name='mesquite',
+             git='https://github.com/trilinos/mesquite.git',
+             commit='20a679679b5cdf15bf573d66c5dc2b016e8b9ca1',  # branch trilinos-release-12-12-1
+             placement='packages/mesquite',
+             when='+mesquite @12.18.1:12.18')
+    resource(name='mesquite',
+             git='https://github.com/trilinos/mesquite.git',
              tag='develop',
-             placement='packages/ForTrilinos',
-             when='+fortrilinos')
+             placement='packages/mesquite',
+             when='+mesquite @master')
 
-    conflicts('+amesos2', when='~teuchos')
-    conflicts('+amesos2', when='~tpetra')
-    conflicts('+amesos', when='~epetra')
-    conflicts('+amesos', when='~teuchos')
-    conflicts('+anasazi', when='~teuchos')
-    conflicts('+belos', when='~teuchos')
-    conflicts('+epetraext', when='~epetra')
-    conflicts('+epetraext', when='~teuchos')
+    # ###################### Conflicts ##########################
+
+    # Epetra packages
+    with when('~epetra'):
+        conflicts('+amesos')
+        conflicts('+aztec')
+        conflicts('+epetraext')
+        conflicts('+ifpack')
+        conflicts('+isorropia')
+        conflicts('+ml', when='@13.2:')
+    with when('~epetraext'):
+        conflicts('+isorropia')
+        conflicts('+teko')
+        conflicts('+epetraextbtf')
+        conflicts('+epetraextexperimental')
+        conflicts('+epetraextgraphreorderings')
+
+    # Tpetra packages
+    with when('~kokkos'):
+        conflicts('+cuda')
+        conflicts('+tpetra')
+        conflicts('+intrepid2')
+        conflicts('+phalanx')
+    with when('~tpetra'):
+        conflicts('+amesos2')
+        conflicts('+dtk')
+        conflicts('+ifpack2')
+        conflicts('+muelu')
+        conflicts('+teko')
+        conflicts('+zoltan2')
+
+    with when('+teko'):
+        conflicts('~amesos')
+        conflicts('~anasazi')
+        conflicts('~aztec')
+        conflicts('~ifpack')
+        conflicts('~ml')
+        conflicts('~stratimikos')
+        conflicts('@:12 gotype=long')
+
+    # Known requirements from tribits dependencies
+    conflicts('+aztec', when='~fortran')
+    conflicts('+basker', when='~amesos2')
+    conflicts('+minitensor', when='~boost')
     conflicts('+ifpack2', when='~belos')
-    conflicts('+ifpack2', when='~teuchos')
-    conflicts('+ifpack2', when='~tpetra')
-    conflicts('+ifpack', when='~epetra')
-    conflicts('+ifpack', when='~teuchos')
-    conflicts('+intrepid2', when='~kokkos')
-    conflicts('+intrepid2', when='~shards')
-    conflicts('+intrepid2', when='~teuchos')
     conflicts('+intrepid', when='~sacado')
     conflicts('+intrepid', when='~shards')
-    conflicts('+intrepid', when='~teuchos')
-    conflicts('+isorropia', when='~epetra')
-    conflicts('+isorropia', when='~epetraext')
-    conflicts('+isorropia', when='~teuchos')
+    conflicts('+intrepid2', when='~shards')
     conflicts('+isorropia', when='~zoltan')
-    conflicts('+muelu', when='~teuchos')
-    conflicts('+muelu', when='~xpetra')
-    conflicts('+nox', when='~teuchos')
-    conflicts('+phalanx', when='~kokkos')
     conflicts('+phalanx', when='~sacado')
-    conflicts('+phalanx', when='~teuchos')
-    conflicts('+piro', when='~teuchos')
-    conflicts('+rol', when='~teuchos')
-    conflicts('+rythmos', when='~teuchos')
-    conflicts('+teko', when='~amesos')
-    conflicts('+teko', when='~anasazi')
-    conflicts('+teko', when='~aztec')
-    conflicts('+teko', when='~ifpack')
-    conflicts('+teko', when='~ml')
-    conflicts('+teko', when='~teuchos')
-    conflicts('+teko', when='~tpetra')
+    conflicts('+scorec', when='~mpi')
+    conflicts('+scorec', when='~shards')
+    conflicts('+scorec', when='~stk')
+    conflicts('+scorec', when='~zoltan')
     conflicts('+tempus', when='~nox')
-    conflicts('+tempus', when='~teuchos')
-    conflicts('+tpetra', when='~kokkos')
-    conflicts('+tpetra', when='~teuchos')
-    conflicts('+zoltan2', when='~teuchos')
-    conflicts('+zoltan2', when='~tpetra')
-    conflicts('+zoltan2', when='~xpetra')
     conflicts('+zoltan2', when='~zoltan')
 
+    # Only allow DTK with Trilinos 12.14, 12.18
+    conflicts('+dtk', when='~boost')
     conflicts('+dtk', when='~intrepid2')
-    conflicts('+dtk', when='~kokkos')
-    conflicts('+dtk', when='~teuchos')
-    conflicts('+dtk', when='~tpetra')
-    # Only allow DTK with Trilinos 12.14 and develop
-    conflicts('+dtk', when='@0:12.12.99,master')
-    conflicts('+fortrilinos', when='~fortran')
-    conflicts('+fortrilinos', when='@:99')
-    conflicts('+fortrilinos', when='@master')
+    conflicts('+dtk', when='@:12.12,13:')
+
+    # Installed FindTrilinos are broken in SEACAS if Fortran is disabled
+    # see https://github.com/trilinos/Trilinos/issues/3346
+    conflicts('+exodus', when='@:13.0.1 ~fortran')
+    # Only allow Mesquite with Trilinos 12.12 and up, and master
+    conflicts('+mesquite', when='@:12.10,master')
+    # Strumpack is only available as of mid-2021
+    conflicts('+strumpack', when='@:13.0')
     # Can only use one type of SuperLU
     conflicts('+superlu-dist', when='+superlu')
     # For Trilinos v11 we need to force SuperLUDist=OFF, since only the
@@ -274,42 +248,75 @@ class Trilinos(CMakePackage):
     # see https://github.com/trilinos/Trilinos/issues/3566
     conflicts('+superlu-dist', when='+float+amesos2+explicit_template_instantiation^superlu-dist@5.3.0:')
     # Amesos, conflicting types of double and complex SLU_D
-    # see
-    # https://trilinos.org/pipermail/trilinos-users/2015-March/004731.html
-    # and
-    # https://trilinos.org/pipermail/trilinos-users/2015-March/004802.html
+    # see https://trilinos.org/pipermail/trilinos-users/2015-March/004731.html
+    # and https://trilinos.org/pipermail/trilinos-users/2015-March/004802.html
     conflicts('+superlu-dist', when='+complex+amesos2')
-    # PnetCDF was only added after v12.10.1
-    conflicts('+pnetcdf', when='@0:12.10.1')
     # https://github.com/trilinos/Trilinos/issues/2994
     conflicts(
         '+shared', when='+stk platform=darwin',
         msg='Cannot build Trilinos with STK as a shared library on Darwin.'
     )
-    # ADIOS2 was only added after v12.14.1
     conflicts('+adios2', when='@:12.14.1')
-    conflicts('+adios2', when='@xsdk-0.2.0')
+    conflicts('cxxstd=11', when='@master:')
+    conflicts('cxxstd=11', when='+wrapper ^cuda@6.5.14')
+    conflicts('cxxstd=14', when='+wrapper ^cuda@6.5.14:8.0.61')
+    conflicts('cxxstd=17', when='+wrapper ^cuda@6.5.14:10.2.89')
+
+    # Multi-value gotype only applies to trilinos through 12.14
+    conflicts('gotype=all', when='@12.15:')
+
+    # CUDA without wrapper requires clang
+    for _compiler in spack.compilers.supported_compilers():
+        if _compiler != 'clang':
+            conflicts('+cuda', when='~wrapper %' + _compiler,
+                      msg='trilinos~wrapper+cuda can only be built with the '
+                      'Clang compiler')
+    conflicts('+cuda_rdc', when='~cuda')
+    conflicts('+wrapper', when='~cuda')
+    conflicts('+wrapper', when='%clang')
+
+    # Old trilinos fails with new CUDA (see #27180)
+    conflicts('@:13.0.1 +cuda', when='^cuda@11:')
+
+    # stokhos fails on xl/xl_r
+    conflicts('+stokhos', when='%xl')
+    conflicts('+stokhos', when='%xl_r')
+
+    # Fortran mangling fails on Apple M1 (see spack/spack#25900)
+    conflicts('@:13.0.1 +fortran', when='target=m1')
+
     # ###################### Dependencies ##########################
 
-    # Everything should be compiled position independent (-fpic)
-    depends_on('blas')
-    depends_on('lapack')
-    depends_on('boost', when='+boost')
-    depends_on('boost', when='+dtk')
-    depends_on('matio')
-    depends_on('glm')
-    depends_on('metis@5:', when='+metis')
-    depends_on('suite-sparse', when='+suite-sparse')
-    depends_on('zlib', when="+zlib")
-
-    # MPI related dependencies
-    depends_on('mpi')
-    depends_on('netcdf-c+mpi', when="~pnetcdf")
-    depends_on('netcdf-c+mpi+parallel-netcdf', when="+pnetcdf@master,12.12.1:")
-    depends_on('parallel-netcdf', when="+pnetcdf@master,12.12.1:")
-    depends_on('parmetis', when='+metis')
-    depends_on('cgns', when='+cgns')
     depends_on('adios2', when='+adios2')
+    depends_on('blas')
+    depends_on('boost', when='+boost')
+    depends_on('cgns', when='+exodus')
+    depends_on('hdf5+hl', when='+hdf5')
+    depends_on('hypre~internal-superlu~int64', when='+hypre')
+    depends_on('kokkos-nvcc-wrapper', when='+wrapper')
+    depends_on('lapack')
+    depends_on('libx11', when='+x11')
+    depends_on('matio', when='+exodus')
+    depends_on('metis', when='+zoltan')
+    depends_on('mpi', when='+mpi')
+    depends_on('netcdf-c', when="+exodus")
+    depends_on('parallel-netcdf', when='+exodus+mpi')
+    depends_on('parmetis', when='+mpi +zoltan')
+    depends_on('parmetis', when='+scorec')
+    depends_on('py-mpi4py', when='+mpi+python', type=('build', 'run'))
+    depends_on('py-numpy', when='+python', type=('build', 'run'))
+    depends_on('python', when='+python')
+    depends_on('python', when='@13.2: +ifpack +hypre', type='build')
+    depends_on('python', when='@13.2: +ifpack2 +hypre', type='build')
+    depends_on('scalapack', when='+mumps')
+    depends_on('scalapack', when='+strumpack+mpi')
+    depends_on('strumpack+shared', when='+strumpack')
+    depends_on('suite-sparse', when='+suite-sparse')
+    depends_on('superlu-dist', when='+superlu-dist')
+    depends_on('superlu@4.3 +pic', when='+superlu')
+    depends_on('swig', when='+python')
+    depends_on('zlib', when='+zoltan')
+
     # Trilinos' Tribits config system is limited which makes it very tricky to
     # link Amesos with static MUMPS, see
     # https://trilinos.org/docs/dev/packages/amesos2/doc/html/classAmesos2_1_1MUMPS.html
@@ -317,457 +324,418 @@ class Trilinos(CMakePackage):
     # (or alike) and adding results to -DTrilinos_EXTRA_LINK_FLAGS together
     # with Blas and Lapack and ScaLAPACK and Blacs and -lgfortran and it may
     # work at the end. But let's avoid all this by simply using shared libs
-    depends_on('mumps@5.0:+mpi+shared', when='+mumps')
-    depends_on('scalapack', when='+mumps')
-    depends_on('superlu-dist', when='+superlu-dist')
-    depends_on('superlu-dist@:4.3', when='@11.14.1:12.6.1+superlu-dist')
+    depends_on('mumps@5.0:+shared', when='+mumps')
+
+    for _flag in ('~mpi', '+mpi'):
+        depends_on('hdf5' + _flag, when='+hdf5' + _flag)
+        depends_on('mumps' + _flag, when='+mumps' + _flag)
+    for _flag in ('~openmp', '+openmp'):
+        depends_on('mumps' + _flag, when='+mumps' + _flag)
+
+    depends_on('hwloc', when='@13: +kokkos')
+    depends_on('hwloc+cuda', when='@13: +kokkos+cuda')
+    depends_on('hypre@develop', when='@master: +hypre')
+    depends_on('netcdf-c+mpi+parallel-netcdf', when="+exodus+mpi@12.12.1:")
     depends_on('superlu-dist@4.4:5.3', when='@12.6.2:12.12.1+superlu-dist')
-    depends_on('superlu-dist@develop', when='@develop+superlu-dist')
-    depends_on('superlu-dist@xsdk-0.2.0', when='@xsdk-0.2.0+superlu-dist')
-    depends_on('superlu+pic@4.3', when='+superlu')
-    # Trilinos can not be built against 64bit int hypre
-    depends_on('hypre~internal-superlu~int64', when='+hypre')
-    depends_on('hypre@xsdk-0.2.0~internal-superlu', when='@xsdk-0.2.0+hypre')
-    depends_on('hypre@develop~internal-superlu', when='@develop+hypre')
-    # We need hdf5+hl to match with netcdf during concretization
-    depends_on('hdf5+hl+mpi', when='+hdf5')
-    depends_on('python', when='+python')
-    depends_on('py-numpy', when='+python', type=('build', 'run'))
-    depends_on('swig', when='+python')
+    depends_on('superlu-dist@5.4:6.2.0', when='@12.12.2:13.0.0+superlu-dist')
+    depends_on('superlu-dist@6.3.0:', when='@13.0.1:99 +superlu-dist')
+    depends_on('superlu-dist@:4.3', when='@11.14.1:12.6.1+superlu-dist')
+    depends_on('superlu-dist@develop', when='@master: +superlu-dist')
+
+    # ###################### Patches ##########################
 
     patch('umfpack_from_suitesparse.patch', when='@11.14.1:12.8.1')
-    patch('xlf_seacas.patch', when='@12.10.1:12.12.1 %xl')
-    patch('xlf_seacas.patch', when='@12.10.1:12.12.1 %xl_r')
-    patch('xlf_seacas.patch', when='@12.10.1:12.12.1 %clang')
-    patch('xlf_tpetra.patch', when='@12.12.1%xl')
-    patch('xlf_tpetra.patch', when='@12.12.1%xl_r')
-    patch('xlf_tpetra.patch', when='@12.12.1%clang')
+    for _compiler in ['xl', 'xl_r', 'clang']:
+        patch('xlf_seacas.patch', when='@12.10.1:12.12.1 %' + _compiler)
+        patch('xlf_tpetra.patch', when='@12.12.1 %' + _compiler)
+    patch('fix_clang_errors_12_18_1.patch', when='@12.18.1%clang')
+    patch('cray_secas_12_12_1.patch', when='@12.12.1%cce')
+    patch('cray_secas.patch', when='@12.14.1:%cce')
+
+    # workaround an NVCC bug with c++14 (https://github.com/trilinos/Trilinos/issues/6954)
+    # avoid calling deprecated functions with CUDA-11
+    patch('fix_cxx14_cuda11.patch', when='@13.0.0:13.0.1 cxxstd=14 ^cuda@11:')
+    # Allow building with +teko gotype=long
+    patch('https://github.com/trilinos/Trilinos/commit/b17f20a0b91e0b9fc5b1b0af3c8a34e2a4874f3f.patch',
+          sha256='dee6c55fe38eb7f6367e1896d6bc7483f6f9ab8fa252503050cc0c68c6340610',
+          when='@13.0.0:13.0.1 +teko gotype=long')
+
+    def flag_handler(self, name, flags):
+        is_cce = self.spec.satisfies('%cce')
+
+        if name == 'cxxflags':
+            spec = self.spec
+            if '+mumps' in spec:
+                # see https://github.com/trilinos/Trilinos/blob/master/packages/amesos/README-MUMPS
+                flags.append('-DMUMPS_5_0')
+            if '+stk platform=darwin' in spec:
+                flags.append('-DSTK_NO_BOOST_STACKTRACE')
+            if '+stk%intel' in spec:
+                # Workaround for Intel compiler segfaults with STK and IPO
+                flags.append('-no-ipo')
+            if '+wrapper' in spec:
+                flags.append('--expt-extended-lambda')
+        elif name == 'ldflags' and is_cce:
+            flags.append('-fuse-ld=gold')
+
+        if is_cce:
+            return (None, None, flags)
+        return (flags, None, None)
 
     def url_for_version(self, version):
         url = "https://github.com/trilinos/Trilinos/archive/trilinos-release-{0}.tar.gz"
         return url.format(version.dashed)
 
-    def cmake_args(self):
-        spec = self.spec
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        if '+cuda' in self.spec:
+            # currently Trilinos doesn't perform the memory fence so
+            # it relies on blocking CUDA kernel launch. This is needed
+            # in case the dependent app also run a CUDA backend via Trilinos
+            env.set('CUDA_LAUNCH_BLOCKING', '1')
 
-        cxx_flags = []
+    def setup_dependent_package(self, module, dependent_spec):
+        if '+wrapper' in self.spec:
+            self.spec.kokkos_cxx = self.spec["kokkos-nvcc-wrapper"].kokkos_cxx
+        else:
+            self.spec.kokkos_cxx = spack_cxx
+
+    def setup_build_environment(self, env):
+        spec = self.spec
+        if '+cuda' in spec and '+wrapper' in spec:
+            if '+mpi' in spec:
+                env.set('OMPI_CXX', spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set('MPICH_CXX', spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set('MPICXX_CXX', spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+            else:
+                env.set('CXX', spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+
+    def cmake_args(self):
         options = []
+
+        spec = self.spec
+        define = CMakePackage.define
+        define_from_variant = self.define_from_variant
+
+        def _make_definer(prefix):
+            def define_enable(suffix, value=None):
+                key = prefix + suffix
+                if value is None:
+                    # Default to lower-case spec
+                    value = suffix.lower()
+                elif isinstance(value, bool):
+                    # Explicit true/false
+                    return define(key, value)
+                return define_from_variant(key, value)
+            return define_enable
+
+        # Return "Trilinos_ENABLE_XXX" for spec "+xxx" or boolean value
+        define_trilinos_enable = _make_definer("Trilinos_ENABLE_")
+        # Same but for TPLs
+        define_tpl_enable = _make_definer("TPL_ENABLE_")
 
         # #################### Base Settings #######################
 
-        mpi_bin = spec['mpi'].prefix.bin
         options.extend([
-            '-DTrilinos_VERBOSE_CONFIGURE:BOOL=OFF',
-            '-DTrilinos_ENABLE_TESTS:BOOL=OFF',
-            '-DTrilinos_ENABLE_EXAMPLES:BOOL=OFF',
-            '-DTrilinos_ENABLE_CXX11:BOOL=ON',
-            '-DBUILD_SHARED_LIBS:BOOL=%s' % (
-                'ON' if '+shared' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_DEBUG:BOOL=%s' % (
-                'ON' if '+debug' in spec else 'OFF'),
-
+            define('Trilinos_VERBOSE_CONFIGURE', False),
+            define_from_variant('BUILD_SHARED_LIBS', 'shared'),
+            define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
+            define_trilinos_enable('TESTS', False),
+            define_trilinos_enable('EXAMPLES', False),
+            define_trilinos_enable('CXX11', True),
+            define_trilinos_enable('DEBUG', 'debug'),
+            define_trilinos_enable('Fortran'),
+            define_trilinos_enable('OpenMP'),
+            define_trilinos_enable('EXPLICIT_INSTANTIATION',
+                                   'explicit_template_instantiation')
             # The following can cause problems on systems that don't have
             # static libraries available for things like dl and pthreads
             # for example when trying to build static libs
-            # '-DTPL_FIND_SHARED_LIBS:BOOL=%s' % (
-            #     'ON' if '+shared' in spec else 'OFF'),
-            # '-DTrilinos_LINK_SEARCH_START_STATIC:BOOL=%s' % (
-            #     'OFF' if '+shared' in spec else 'ON'),
-
-            # Force Trilinos to use the MPI wrappers instead of raw compilers
-            # this is needed on Apple systems that require full resolution of
-            # all symbols when linking shared libraries
-            '-DTPL_ENABLE_MPI:BOOL=ON',
-            '-DCMAKE_C_COMPILER=%s'       % spec['mpi'].mpicc,
-            '-DCMAKE_CXX_COMPILER=%s'     % spec['mpi'].mpicxx,
-            '-DCMAKE_Fortran_COMPILER=%s' % spec['mpi'].mpifc,
-            '-DMPI_BASE_DIR:PATH=%s'      % spec['mpi'].prefix
+            # define_from_variant('TPL_FIND_SHARED_LIBS', 'shared')
+            # define('Trilinos_LINK_SEARCH_START_STATIC', '+shared' not in spec)
         ])
 
         # ################## Trilinos Packages #####################
 
         options.extend([
-            '-DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES:BOOL=%s' % (
-                'ON' if '+alloptpkgs' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Amesos:BOOL=%s' % (
-                'ON' if '+amesos' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Amesos2:BOOL=%s' % (
-                'ON' if '+amesos2' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Anasazi:BOOL=%s' % (
-                'ON' if '+anasazi' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_AztecOO:BOOL=%s' % (
-                'ON' if '+aztec' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Belos:BOOL=%s' % (
-                'ON' if '+belos' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Epetra:BOOL=%s' % (
-                'ON' if '+epetra' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_EpetraExt:BOOL=%s' % (
-                'ON' if '+epetraext' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Ifpack:BOOL=%s' % (
-                'ON' if '+ifpack' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Ifpack2:BOOL=%s' % (
-                'ON' if '+ifpack2' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Intrepid=%s' % (
-                'ON' if '+intrepid' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Intrepid2=%s' % (
-                'ON' if '+intrepid2' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Isorropia=%s' % (
-                'ON' if '+isorropia' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Kokkos:BOOL=%s' % (
-                'ON' if '+kokkos' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_MiniTensor=%s' % (
-                'ON' if '+minitensor' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_ML:BOOL=%s' % (
-                'ON' if '+ml' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_MueLu:BOOL=%s' % (
-                'ON' if '+muelu' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_NOX:BOOL=%s' % (
-                'ON' if '+nox' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Piro:BOOL=%s' % (
-                'ON' if '+piro' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Phalanx=%s' % (
-                'ON' if '+phalanx' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_PyTrilinos:BOOL=%s' % (
-                'ON' if '+python' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_ROL:BOOL=%s' % (
-                'ON' if '+rol' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Rythmos=%s' % (
-                'ON' if '+rythmos' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Sacado:BOOL=%s' % (
-                'ON' if '+sacado' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Shards=%s' % (
-                'ON' if '+shards' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_ShyLU=%s' % (
-                'ON' if '+shylu' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Teko=%s' % (
-                'ON' if '+teko' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Tempus=%s' % (
-                'ON' if '+tempus' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Teuchos:BOOL=%s' % (
-                'ON' if '+teuchos' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Tpetra:BOOL=%s' % (
-                'ON' if '+tpetra' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Zoltan:BOOL=%s' % (
-                'ON' if '+zoltan' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Zoltan2:BOOL=%s' % (
-                'ON' if '+zoltan2' in spec else 'OFF'),
+            define_trilinos_enable('Amesos'),
+            define_trilinos_enable('Amesos2'),
+            define_trilinos_enable('Anasazi'),
+            define_trilinos_enable('AztecOO', 'aztec'),
+            define_trilinos_enable('Belos'),
+            define_trilinos_enable('Epetra'),
+            define_trilinos_enable('EpetraExt'),
+            define_trilinos_enable('FEI', False),
+            define_trilinos_enable('Gtest'),
+            define_trilinos_enable('Ifpack'),
+            define_trilinos_enable('Ifpack2'),
+            define_trilinos_enable('Intrepid'),
+            define_trilinos_enable('Intrepid2'),
+            define_trilinos_enable('Isorropia'),
+            define_trilinos_enable('Kokkos'),
+            define_trilinos_enable('MiniTensor'),
+            define_trilinos_enable('Mesquite'),
+            define_trilinos_enable('ML'),
+            define_trilinos_enable('MueLu'),
+            define_trilinos_enable('NOX'),
+            define_trilinos_enable('Pamgen', False),
+            define_trilinos_enable('Panzer', False),
+            define_trilinos_enable('Pike', False),
+            define_trilinos_enable('Piro'),
+            define_trilinos_enable('Phalanx'),
+            define_trilinos_enable('PyTrilinos', 'python'),
+            define_trilinos_enable('ROL'),
+            define_trilinos_enable('Rythmos'),
+            define_trilinos_enable('Sacado'),
+            define_trilinos_enable('SCOREC'),
+            define_trilinos_enable('Shards'),
+            define_trilinos_enable('ShyLU'),
+            define_trilinos_enable('STK'),
+            define_trilinos_enable('Stokhos'),
+            define_trilinos_enable('Stratimikos'),
+            define_trilinos_enable('Teko'),
+            define_trilinos_enable('Tempus'),
+            define_trilinos_enable('Tpetra'),
+            define_trilinos_enable('TrilinosCouplings'),
+            define_trilinos_enable('Zoltan'),
+            define_trilinos_enable('Zoltan2'),
+            define_tpl_enable('Cholmod', False),
+            define_from_variant('EpetraExt_BUILD_BTF', 'epetraextbtf'),
+            define_from_variant('EpetraExt_BUILD_EXPERIMENTAL',
+                                'epetraextexperimental'),
+            define_from_variant('EpetraExt_BUILD_GRAPH_REORDERINGS',
+                                'epetraextgraphreorderings'),
+            define_from_variant('Amesos2_ENABLE_Basker', 'basker'),
         ])
-
-        if '+xsdkflags' in spec:
-            options.extend(['-DUSE_XSDK_DEFAULTS=YES'])
-
-        if '+stk' in spec:
-            options.extend([
-                '-DTrilinos_ENABLE_STK:BOOL=ON'
-            ])
-        else:
-            options.extend([
-                '-DTrilinos_ENABLE_STK:BOOL=OFF'
-            ])
 
         if '+dtk' in spec:
             options.extend([
-                '-DTrilinos_EXTRA_REPOSITORIES:STRING=DataTransferKit',
-                '-DTrilinos_ENABLE_DataTransferKit:BOOL=ON'
+                define('Trilinos_EXTRA_REPOSITORIES', 'DataTransferKit'),
+                define_trilinos_enable('DataTransferKit', True),
             ])
 
         if '+exodus' in spec:
             options.extend([
-                '-DTrilinos_ENABLE_SEACAS:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASExodus:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASIoss:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASEpu:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASExodiff:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASNemspread:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASNemslice:BOOL=ON'
+                define_trilinos_enable('SEACAS', True),
+                define_trilinos_enable('SEACASExodus', True),
+                define_trilinos_enable('SEACASIoss', True),
+                define_trilinos_enable('SEACASEpu', True),
+                define_trilinos_enable('SEACASExodiff', True),
+                define_trilinos_enable('SEACASNemspread', True),
+                define_trilinos_enable('SEACASNemslice', True),
             ])
         else:
             options.extend([
-                '-DTrilinos_ENABLE_SEACASExodus:BOOL=OFF',
-                '-DTrilinos_ENABLE_SEACASIoss:BOOL=OFF'
+                define_trilinos_enable('SEACASExodus', False),
+                define_trilinos_enable('SEACASIoss', False),
             ])
 
         if '+chaco' in spec:
             options.extend([
-                '-DTrilinos_ENABLE_SEACAS:BOOL=ON'
-                '-DTrilinos_ENABLE_SEACASChaco:BOOL=ON'
+                define_trilinos_enable('SEACAS', True),
+                define_trilinos_enable('SEACASChaco', True),
             ])
         else:
             # don't disable SEACAS, could be needed elsewhere
             options.extend([
-                '-DTrilinos_ENABLE_SEACASChaco:BOOL=OFF',
-                '-DTrilinos_ENABLE_SEACASNemslice=OFF'
+                define_trilinos_enable('SEACASChaco', False),
+                define_trilinos_enable('SEACASNemslice', False)
             ])
+
+        if '+stratimikos' in spec:
+            # Explicitly enable Thyra (ThyraCore is required). If you don't do
+            # this, then you get "NOT setting ${pkg}_ENABLE_Thyra=ON since
+            # Thyra is NOT enabled at this point!" leading to eventual build
+            # errors if using MueLu because `Xpetra_ENABLE_Thyra` is set to
+            # off.
+            options.append(define_trilinos_enable('Thyra', True))
+
+            # Add thyra adapters based on package enables
+            options.extend(
+                define_trilinos_enable('Thyra' + pkg + 'Adapters', pkg.lower())
+                for pkg in ['Epetra', 'EpetraExt', 'Tpetra'])
 
         # ######################### TPLs #############################
 
-        blas = spec['blas'].libs
-        lapack = spec['lapack'].libs
-        # Note: -DXYZ_LIBRARY_NAMES= needs semicolon separated list of names
+        def define_tpl(trilinos_name, spack_name, have_dep):
+            options.append(define('TPL_ENABLE_' + trilinos_name, have_dep))
+            if not have_dep:
+                return
+            depspec = spec[spack_name]
+            libs = depspec.libs
+            options.extend([
+                define(trilinos_name + '_INCLUDE_DIRS', depspec.prefix.include),
+                define(trilinos_name + '_ROOT', depspec.prefix),
+                define(trilinos_name + '_LIBRARY_NAMES', libs.names),
+                define(trilinos_name + '_LIBRARY_DIRS', libs.directories),
+            ])
+
+        # Enable these TPLs explicitly from variant options.
+        tpl_variant_map = [
+            ('ADIOS2', 'adios2'),
+            ('Boost', 'boost'),
+            ('CUDA', 'cuda'),
+            ('HDF5', 'hdf5'),
+            ('HYPRE', 'hypre'),
+            ('MUMPS', 'mumps'),
+            ('UMFPACK', 'suite-sparse'),
+            ('SuperLU', 'superlu'),
+            ('SuperLUDist', 'superlu-dist'),
+            ('X11', 'x11'),
+        ]
+        if spec.satisfies('@13.0.2:'):
+            tpl_variant_map.append(('STRUMPACK', 'strumpack'))
+
+        for tpl_name, var_name in tpl_variant_map:
+            define_tpl(tpl_name, var_name, spec.variants[var_name].value)
+
+        # Enable these TPLs based on whether they're in our spec; prefer to
+        # require this way so that packages/features disable availability
+        tpl_dep_map = [
+            ('BLAS', 'blas'),
+            ('CGNS', 'cgns'),
+            ('LAPACK', 'lapack'),
+            ('Matio', 'matio'),
+            ('METIS', 'metis'),
+            ('Netcdf', 'netcdf-c'),
+            ('SCALAPACK', 'scalapack'),
+            ('Zlib', 'zlib'),
+        ]
+        if spec.satisfies('@12.12.1:'):
+            tpl_dep_map.append(('Pnetcdf', 'parallel-netcdf'))
+        if spec.satisfies('@13:'):
+            tpl_dep_map.append(('HWLOC', 'hwloc'))
+
+        for tpl_name, dep_name in tpl_dep_map:
+            define_tpl(tpl_name, dep_name, dep_name in spec)
+
+        # MPI settings
+        options.append(define_tpl_enable('MPI'))
+        if '+mpi' in spec:
+            # Force Trilinos to use the MPI wrappers instead of raw compilers
+            # to propagate library link flags for linkers that require fully
+            # resolved symbols in shared libs (such as macOS and some newer
+            # Ubuntu)
+            options.extend([
+                define('CMAKE_C_COMPILER', spec['mpi'].mpicc),
+                define('CMAKE_CXX_COMPILER', spec['mpi'].mpicxx),
+                define('CMAKE_Fortran_COMPILER', spec['mpi'].mpifc),
+                define('MPI_BASE_DIR', spec['mpi'].prefix),
+            ])
+
+        # ParMETIS dependencies have to be transitive explicitly
+        have_parmetis = 'parmetis' in spec
+        options.append(define_tpl_enable('ParMETIS', have_parmetis))
+        if have_parmetis:
+            options.extend([
+                define('ParMETIS_LIBRARY_DIRS', [
+                    spec['parmetis'].prefix.lib, spec['metis'].prefix.lib
+                ]),
+                define('ParMETIS_LIBRARY_NAMES', ['parmetis', 'metis']),
+                define('TPL_ParMETIS_INCLUDE_DIRS', [
+                    spec['parmetis'].prefix.include,
+                    spec['metis'].prefix.include
+                ]),
+            ])
+
+        if spec.satisfies('^superlu-dist@4.0:'):
+            options.extend([
+                define('HAVE_SUPERLUDIST_LUSTRUCTINIT_2ARG', True),
+            ])
+
+        if spec.satisfies('^parallel-netcdf'):
+            options.extend([
+                define('TPL_Netcdf_Enables_Netcdf4', True),
+                define('TPL_Netcdf_PARALLEL', True),
+                define('PNetCDF_ROOT', spec['parallel-netcdf'].prefix),
+            ])
+
+        # ################# Explicit template instantiation #################
+
+        complex_s = spec.variants['complex'].value
+        float_s = spec.variants['float'].value
+
         options.extend([
-            '-DTPL_ENABLE_BLAS=ON',
-            '-DBLAS_LIBRARY_NAMES=%s' % ';'.join(blas.names),
-            '-DBLAS_LIBRARY_DIRS=%s' % ';'.join(blas.directories),
-            '-DTPL_ENABLE_LAPACK=ON',
-            '-DLAPACK_LIBRARY_NAMES=%s' % ';'.join(lapack.names),
-            '-DLAPACK_LIBRARY_DIRS=%s' % ';'.join(lapack.directories),
-            '-DTPL_ENABLE_Netcdf:BOOL=ON',
-            '-DNetCDF_ROOT:PATH=%s' % spec['netcdf-c'].prefix,
-            '-DTPL_ENABLE_X11:BOOL=%s' % (
-                'ON' if '+x11' in spec else 'OFF'),
-            '-DTrilinos_ENABLE_Gtest:BOOL=%s' % (
-                'ON' if '+gtest' in spec else 'OFF'),
+            define('Teuchos_ENABLE_COMPLEX', complex_s),
+            define('Teuchos_ENABLE_FLOAT', float_s),
         ])
 
-        if '+hypre' in spec:
+        if '+tpetra +explicit_template_instantiation' in spec:
+            options.append(define_from_variant('Tpetra_INST_OPENMP', 'openmp'))
             options.extend([
-                '-DTPL_ENABLE_HYPRE:BOOL=ON',
-                '-DHYPRE_INCLUDE_DIRS:PATH=%s' % spec['hypre'].prefix.include,
-                '-DHYPRE_LIBRARY_DIRS:PATH=%s' % spec['hypre'].prefix.lib
+                define('Tpetra_INST_DOUBLE', True),
+                define('Tpetra_INST_COMPLEX_DOUBLE', complex_s),
+                define('Tpetra_INST_COMPLEX_FLOAT', float_s and complex_s),
+                define('Tpetra_INST_FLOAT', float_s),
+                define('Tpetra_INST_SERIAL', True),
             ])
 
-        if '+boost' in spec:
-            options.extend([
-                '-DTPL_ENABLE_Boost:BOOL=ON',
-                '-DBoost_INCLUDE_DIRS:PATH=%s' % spec['boost'].prefix.include,
-                '-DBoost_LIBRARY_DIRS:PATH=%s' % spec['boost'].prefix.lib
-            ])
-        else:
-            options.extend(['-DTPL_ENABLE_Boost:BOOL=OFF'])
-
-        if '+hdf5' in spec:
-            options.extend([
-                '-DTPL_ENABLE_HDF5:BOOL=ON',
-                '-DHDF5_INCLUDE_DIRS:PATH=%s' % spec['hdf5'].prefix.include,
-                '-DHDF5_LIBRARY_DIRS:PATH=%s' % spec['hdf5'].prefix.lib
-            ])
-        else:
-            options.extend(['-DTPL_ENABLE_HDF5:BOOL=OFF'])
-
-        if '+suite-sparse' in spec:
-            options.extend([
-                # FIXME: Trilinos seems to be looking for static libs only,
-                # patch CMake TPL file?
-                '-DTPL_ENABLE_Cholmod:BOOL=OFF',
-                # '-DTPL_ENABLE_Cholmod:BOOL=ON',
-                # '-DCholmod_LIBRARY_DIRS:PATH=%s' % (
-                #    spec['suite-sparse'].prefix.lib,
-                # '-DCholmod_INCLUDE_DIRS:PATH=%s' % (
-                #    spec['suite-sparse'].prefix.include,
-                '-DTPL_ENABLE_UMFPACK:BOOL=ON',
-                '-DUMFPACK_LIBRARY_DIRS:PATH=%s' % (
-                    spec['suite-sparse'].prefix.lib),
-                '-DUMFPACK_INCLUDE_DIRS:PATH=%s' % (
-                    spec['suite-sparse'].prefix.include),
-                '-DUMFPACK_LIBRARY_NAMES=umfpack;amd;colamd;cholmod;' +
-                'suitesparseconfig'
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_Cholmod:BOOL=OFF',
-                '-DTPL_ENABLE_UMFPACK:BOOL=OFF',
-            ])
-
-        if '+metis' in spec:
-            options.extend([
-                '-DTPL_ENABLE_METIS:BOOL=ON',
-                '-DMETIS_LIBRARY_DIRS=%s' % spec['metis'].prefix.lib,
-                '-DMETIS_LIBRARY_NAMES=metis',
-                '-DTPL_METIS_INCLUDE_DIRS=%s' % spec['metis'].prefix.include,
-                '-DTPL_ENABLE_ParMETIS:BOOL=ON',
-                '-DParMETIS_LIBRARY_DIRS=%s;%s' % (
-                    spec['parmetis'].prefix.lib, spec['metis'].prefix.lib),
-                '-DParMETIS_LIBRARY_NAMES=parmetis;metis',
-                '-DTPL_ParMETIS_INCLUDE_DIRS=%s;%s' % (
-                    spec['parmetis'].prefix.include,
-                    spec['metis'].prefix.include)
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_METIS:BOOL=OFF',
-                '-DTPL_ENABLE_ParMETIS:BOOL=OFF',
-            ])
-
-        if '+mumps' in spec:
-            scalapack = spec['scalapack'].libs
-            options.extend([
-                '-DTPL_ENABLE_MUMPS:BOOL=ON',
-                '-DMUMPS_LIBRARY_DIRS=%s' % spec['mumps'].prefix.lib,
-                # order is important!
-                '-DMUMPS_LIBRARY_NAMES=dmumps;mumps_common;pord',
-                '-DTPL_ENABLE_SCALAPACK:BOOL=ON',
-                '-DSCALAPACK_LIBRARY_NAMES=%s' % ';'.join(scalapack.names),
-                '-DSCALAPACK_LIBRARY_DIRS=%s' % ';'.join(scalapack.directories)
-            ])
-            # see
-            # https://github.com/trilinos/Trilinos/blob/master/packages/amesos/README-MUMPS
-            cxx_flags.extend([
-                '-DMUMPS_5_0'
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_MUMPS:BOOL=OFF',
-                '-DTPL_ENABLE_SCALAPACK:BOOL=OFF',
-            ])
-
-        if '+superlu-dist' in spec:
-            options.extend([
-                '-DKokkosTSQR_ENABLE_Complex:BOOL=OFF'
-            ])
-            options.extend([
-                '-DTPL_ENABLE_SuperLUDist:BOOL=ON',
-                '-DSuperLUDist_LIBRARY_DIRS=%s' %
-                spec['superlu-dist'].prefix.lib,
-                '-DSuperLUDist_INCLUDE_DIRS=%s' %
-                spec['superlu-dist'].prefix.include
-            ])
-            if spec.satisfies('^superlu-dist@4.0:'):
+            gotype = spec.variants['gotype'].value
+            if gotype == 'all':
+                # default in older Trilinos versions to enable multiple GOs
                 options.extend([
-                    '-DHAVE_SUPERLUDIST_LUSTRUCTINIT_2ARG:BOOL=ON'
+                    define('Tpetra_INST_INT_INT', True),
+                    define('Tpetra_INST_INT_LONG', True),
+                    define('Tpetra_INST_INT_LONG_LONG', True),
                 ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_SuperLUDist:BOOL=OFF',
-            ])
-
-        if '+superlu' in spec:
-            options.extend([
-                '-DTPL_ENABLE_SuperLU:BOOL=ON',
-                '-DSuperLU_LIBRARY_DIRS=%s' %
-                spec['superlu'].prefix.lib,
-                '-DSuperLU_INCLUDE_DIRS=%s' %
-                spec['superlu'].prefix.include
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_SuperLU:BOOL=OFF',
-            ])
-
-        if '+pnetcdf' in spec:
-            options.extend([
-                '-DTPL_ENABLE_Pnetcdf:BOOL=ON',
-                '-DTPL_Netcdf_Enables_Netcdf4:BOOL=ON',
-                '-DTPL_Netcdf_PARALLEL:BOOL=ON',
-                '-DPNetCDF_ROOT:PATH=%s' % spec['parallel-netcdf'].prefix
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_Pnetcdf:BOOL=OFF'
-            ])
-
-        if '+zlib' in spec:
-            options.extend([
-                '-DTPL_ENABLE_Zlib:BOOL=ON',
-                '-DZlib_ROOT:PATH=%s' % spec['zlib'].prefix,
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_Zlib:BOOL=OFF'
-            ])
-
-        if '+cgns' in spec:
-            options.extend([
-                '-DTPL_ENABLE_CGNS:BOOL=ON',
-                '-DCGNS_INCLUDE_DIRS:PATH=%s' % spec['cgns'].prefix.include,
-                '-DCGNS_LIBRARY_DIRS:PATH=%s' % spec['cgns'].prefix.lib
-            ])
-        else:
-            options.extend([
-                '-DTPL_ENABLE_CGNS:BOOL=OFF'
-            ])
-
-        options.append('-DTPL_ENABLE_ADIOS2:BOOL=' + str('+adios2' in spec))
-        # ################# Miscellaneous Stuff ######################
-
-        # OpenMP
-        if '+openmp' in spec:
-            options.extend([
-                '-DTrilinos_ENABLE_OpenMP:BOOL=ON',
-                '-DKokkos_ENABLE_OpenMP:BOOL=ON'
-            ])
-            if '+tpetra' in spec:
+            else:
                 options.extend([
-                    '-DTpetra_INST_OPENMP:BOOL=ON'
+                    define('Tpetra_INST_INT_INT', gotype == 'int'),
+                    define('Tpetra_INST_INT_LONG', gotype == 'long'),
+                    define('Tpetra_INST_INT_LONG_LONG', gotype == 'long_long'),
                 ])
 
-        # Fortran lib
-        if '+fortran' in spec:
-            if spec.satisfies('%gcc') or spec.satisfies('%clang'):
-                libgfortran = os.path.dirname(os.popen(
-                    '%s --print-file-name libgfortran.a' %
-                    join_path(mpi_bin, 'mpif90')).read())
+        # ################# Kokkos ######################
+
+        if '+kokkos' in spec:
+            arch = Kokkos.get_microarch(spec.target)
+            if arch:
+                options.append(define("Kokkos_ARCH_" + arch.upper(), True))
+
+            define_kok_enable = _make_definer("Kokkos_ENABLE_")
+            options.extend([
+                define_kok_enable('CUDA'),
+                define_kok_enable('OPENMP' if spec.version >= Version('13')
+                                  else 'OpenMP'),
+            ])
+            if '+cuda' in spec:
                 options.extend([
-                    '-DTrilinos_EXTRA_LINK_FLAGS:STRING=-L%s/ -lgfortran' % (
-                        libgfortran),
-                    '-DTrilinos_ENABLE_Fortran=ON'
+                    define_kok_enable('CUDA_UVM', True),
+                    define_kok_enable('CUDA_LAMBDA', True),
+                    define_kok_enable('CUDA_RELOCATABLE_DEVICE_CODE', 'cuda_rdc')
                 ])
+                arch_map = Kokkos.spack_cuda_arch_map
+                options.extend(
+                    define("Kokkos_ARCH_" + arch_map[arch].upper(), True)
+                    for arch in spec.variants['cuda_arch'].value
+                )
 
-        float_s = 'ON' if '+float' in spec else 'OFF'
-        complex_s = 'ON' if '+complex' in spec else 'OFF'
-        complex_float_s = 'ON' if ('+complex' in spec and
-                                   '+float' in spec) else 'OFF'
-        if '+teuchos' in spec:
-            options.extend([
-                '-DTeuchos_ENABLE_COMPLEX=%s' % complex_s,
-                '-DTeuchos_ENABLE_FLOAT=%s' % float_s
-            ])
+        # ################# System-specific ######################
 
-        # Explicit Template Instantiation (ETI) in Tpetra
-        # NOTE: Trilinos will soon move to fixed std::uint64_t for GO and
-        # std::int32_t or std::int64_t for local.
-        options.append(
-            '-DTrilinos_ENABLE_EXPLICIT_INSTANTIATION:BOOL=%s' % (
-                'ON' if '+explicit_template_instantiation' in spec else 'OFF'
-            )
-        )
-
-        if '+explicit_template_instantiation' in spec and '+tpetra' in spec:
-            options.extend([
-                '-DTpetra_INST_DOUBLE:BOOL=ON',
-                '-DTpetra_INST_INT_LONG:BOOL=ON',
-                '-DTpetra_INST_INT_LONG_LONG:BOOL=ON',
-                '-DTpetra_INST_COMPLEX_DOUBLE=%s' % complex_s,
-                '-DTpetra_INST_COMPLEX_FLOAT=%s' % complex_float_s,
-                '-DTpetra_INST_FLOAT=%s' % float_s,
-                '-DTpetra_INST_SERIAL=ON'
-            ])
-
-        # disable due to compiler / config errors:
-        if spec.satisfies('%xl') or spec.satisfies('%xl_r'):
-            options.extend([
-                '-DTrilinos_ENABLE_Pamgen:BOOL=OFF',
-                '-DTrilinos_ENABLE_Stokhos:BOOL=OFF'
-            ])
-
-        if sys.platform == 'darwin':
-            options.extend([
-                '-DTrilinos_ENABLE_FEI=OFF'
-            ])
+        # Fortran lib (assumes clang is built with gfortran!)
+        if ('+fortran' in spec
+                and spec.compiler.name in ['gcc', 'clang', 'apple-clang']):
+            fc = Executable(spec['mpi'].mpifc) if (
+                '+mpi' in spec) else Executable(spack_fc)
+            libgfortran = fc('--print-file-name',
+                             'libgfortran.' + dso_suffix,
+                             output=str).strip()
+            # if libgfortran is equal to "libgfortran.<dso_suffix>" then
+            # print-file-name failed, use static library instead
+            if libgfortran == 'libgfortran.' + dso_suffix:
+                libgfortran = fc('--print-file-name',
+                                 'libgfortran.a',
+                                 output=str).strip()
+            # -L<libdir> -lgfortran required for OSX
+            # https://github.com/spack/spack/pull/25823#issuecomment-917231118
+            options.append(
+                define('Trilinos_EXTRA_LINK_FLAGS',
+                       '-L%s/ -lgfortran' % os.path.dirname(libgfortran)))
 
         if sys.platform == 'darwin' and macos_version() >= Version('10.12'):
             # use @rpath on Sierra due to limit of dynamic loader
-            options.append('-DCMAKE_MACOSX_RPATH=ON')
+            options.append(define('CMAKE_MACOSX_RPATH', True))
         else:
-            options.append('-DCMAKE_INSTALL_NAME_DIR:PATH=%s' %
-                           self.prefix.lib)
-
-        if spec.satisfies('%intel') and spec.satisfies('@12.6.2'):
-            # Panzer uses some std:chrono that is not recognized by Intel
-            # Don't know which (maybe all) Trilinos versions this applies to
-            # Don't know which (maybe all) Intel versions this applies to
-            options.extend([
-                '-DTrilinos_ENABLE_Panzer:BOOL=OFF'
-            ])
-
-        # collect CXX flags:
-        options.extend([
-            '-DCMAKE_CXX_FLAGS:STRING=%s' % (' '.join(cxx_flags)),
-        ])
-
-        # disable due to compiler / config errors:
-        options.extend([
-            '-DTrilinos_ENABLE_Pike=OFF'
-        ])
+            options.append(define('CMAKE_INSTALL_NAME_DIR', self.prefix.lib))
 
         return options
 
@@ -779,10 +747,24 @@ class Trilinos(CMakePackage):
         # run-time error: Symbol not found: _PyBool_Type and prevents
         # Trilinos to be used in any C++ code, which links executable
         # against the libraries listed in Trilinos_LIBRARIES.  See
-        # https://github.com/Homebrew/homebrew-science/issues/2148#issuecomment-103614509
-        # A workaround is to remove PyTrilinos from the COMPONENTS_LIST :
+        # https://github.com/trilinos/Trilinos/issues/569 and
+        # https://github.com/trilinos/Trilinos/issues/866
+        # A workaround is to remove PyTrilinos from the COMPONENTS_LIST
+        # and to remove -lpytrilonos from Makefile.export.Trilinos
         if '+python' in self.spec:
             filter_file(r'(SET\(COMPONENTS_LIST.*)(PyTrilinos;)(.*)',
                         (r'\1\3'),
                         '%s/cmake/Trilinos/TrilinosConfig.cmake' %
                         self.prefix.lib)
+            filter_file(r'-lpytrilinos', '',
+                        '%s/Makefile.export.Trilinos' %
+                        self.prefix.include)
+
+    def setup_run_environment(self, env):
+        if '+exodus' in self.spec:
+            env.prepend_path('PYTHONPATH', self.prefix.lib)
+
+        if '+cuda' in self.spec:
+            # currently Trilinos doesn't perform the memory fence so
+            # it relies on blocking CUDA kernel launch.
+            env.set('CUDA_LAUNCH_BLOCKING', '1')

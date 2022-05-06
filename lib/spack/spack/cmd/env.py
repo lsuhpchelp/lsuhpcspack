@@ -1,26 +1,29 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import shutil
 import sys
-from collections import namedtuple
+import tempfile
 
-import llnl.util.tty as tty
 import llnl.util.filesystem as fs
+import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
-import spack.config
-import spack.schema.env
-import spack.cmd.install
-import spack.cmd.uninstall
-import spack.cmd.modules
+import spack.cmd.common.arguments
 import spack.cmd.common.arguments as arguments
+import spack.cmd.install
+import spack.cmd.modules
+import spack.cmd.uninstall
+import spack.config
 import spack.environment as ev
+import spack.environment.shell
+import spack.schema.env
 import spack.util.string as string
-
+from spack.util.environment import EnvironmentModifications
 
 description = "manage virtual environments"
 section = "environments"
@@ -37,6 +40,8 @@ subcommands = [
     ['status', 'st'],
     'loads',
     'view',
+    'update',
+    'revert'
 ]
 
 
@@ -52,6 +57,9 @@ def env_activate_setup_parser(subparser):
     shells.add_argument(
         '--csh', action='store_const', dest='shell', const='csh',
         help="print csh commands to activate the environment")
+    shells.add_argument(
+        '--fish', action='store_const', dest='shell', const='fish',
+        help="print fish commands to activate the environment")
 
     view_options = subparser.add_mutually_exclusive_group()
     view_options.add_argument(
@@ -64,54 +72,89 @@ def env_activate_setup_parser(subparser):
         help="do not update PATH etc. with associated view")
 
     subparser.add_argument(
-        '-d', '--dir', action='store_true', default=False,
-        help="force spack to treat env as a directory, not a name")
-    subparser.add_argument(
         '-p', '--prompt', action='store_true', default=False,
         help="decorate the command line prompt when activating")
-    subparser.add_argument(
-        metavar='env', dest='activate_env',
+
+    env_options = subparser.add_mutually_exclusive_group()
+    env_options.add_argument(
+        '--temp', action='store_true', default=False,
+        help='create and activate an environment in a temporary directory')
+    env_options.add_argument(
+        '-d', '--dir', default=None,
+        help="activate the environment in this directory")
+    env_options.add_argument(
+        metavar='env', dest='activate_env', nargs='?', default=None,
         help='name of environment to activate')
 
 
+def create_temp_env_directory():
+    """
+    Returns the path of a temporary directory in which to
+    create an environment
+    """
+    return tempfile.mkdtemp(prefix="spack-")
+
+
 def env_activate(args):
-    env = args.activate_env
+    if not args.activate_env and not args.dir and not args.temp:
+        tty.die('spack env activate requires an environment name, directory, or --temp')
+
     if not args.shell:
-        msg = [
-            "This command works best with Spack's shell support",
-            ""
-        ] + spack.cmd.common.shell_init_instructions + [
-            'Or, if you want to use `spack env activate` without initializing',
-            'shell support, you can run one of these:',
-            '',
-            '    eval `spack env activate --sh %s`   # for bash/sh' % env,
-            '    eval `spack env activate --csh %s`  # for csh/tcsh' % env,
-        ]
-        tty.msg(*msg)
+        spack.cmd.common.shell_init_instructions(
+            "spack env activate",
+            "    eval `spack env activate {sh_arg} [...]`",
+        )
         return 1
 
-    if ev.exists(env) and not args.dir:
-        spack_env = ev.root(env)
-        short_name = env
-        env_prompt = '[%s]' % env
+    # Error out when -e, -E, -D flags are given, cause they are ambiguous.
+    if args.env or args.no_env or args.env_dir:
+        tty.die('Calling spack env activate with --env, --env-dir and --no-env '
+                'is ambiguous')
 
-    elif ev.is_env_dir(env):
-        spack_env = os.path.abspath(env)
-        short_name = os.path.basename(os.path.abspath(env))
-        env_prompt = '[%s]' % short_name
+    env_name_or_dir = args.activate_env or args.dir
+
+    # Temporary environment
+    if args.temp:
+        env = create_temp_env_directory()
+        env_path = os.path.abspath(env)
+        short_name = os.path.basename(env_path)
+        ev.Environment(env).write(regenerate=False)
+
+    # Named environment
+    elif ev.exists(env_name_or_dir) and not args.dir:
+        env_path = ev.root(env_name_or_dir)
+        short_name = env_name_or_dir
+
+    # Environment directory
+    elif ev.is_env_dir(env_name_or_dir):
+        env_path = os.path.abspath(env_name_or_dir)
+        short_name = os.path.basename(env_path)
 
     else:
-        tty.die("No such environment: '%s'" % env)
+        tty.die("No such environment: '%s'" % env_name_or_dir)
 
-    if spack_env == os.environ.get('SPACK_ENV'):
-        tty.die("Environment %s is already active" % args.activate_env)
+    env_prompt = '[%s]' % short_name
 
-    active_env = ev.get_env(namedtuple('args', ['env'])(env),
-                            'activate')
-    cmds = ev.activate(
-        active_env, add_view=args.with_view, shell=args.shell,
+    # We only support one active environment at a time, so deactivate the current one.
+    if ev.active_environment() is None:
+        cmds = ''
+        env_mods = EnvironmentModifications()
+    else:
+        cmds = spack.environment.shell.deactivate_header(shell=args.shell)
+        env_mods = spack.environment.shell.deactivate()
+
+    # Activate new environment
+    active_env = ev.Environment(env_path)
+    cmds += spack.environment.shell.activate_header(
+        env=active_env,
+        shell=args.shell,
         prompt=env_prompt if args.prompt else None
     )
+    env_mods.extend(spack.environment.shell.activate(
+        env=active_env,
+        add_view=args.with_view
+    ))
+    cmds += env_mods.shell_modifications(args.shell)
     sys.stdout.write(cmds)
 
 
@@ -127,27 +170,30 @@ def env_deactivate_setup_parser(subparser):
     shells.add_argument(
         '--csh', action='store_const', dest='shell', const='csh',
         help="print csh commands to deactivate the environment")
+    shells.add_argument(
+        '--fish', action='store_const', dest='shell', const='fish',
+        help="print fish commands to activate the environment")
 
 
 def env_deactivate(args):
     if not args.shell:
-        msg = [
-            "This command works best with Spack's shell support",
-            ""
-        ] + spack.cmd.common.shell_init_instructions + [
-            'Or, if you want to use `spack env activate` without initializing',
-            'shell support, you can run one of these:',
-            '',
-            '    eval `spack env deactivate --sh`   # for bash/sh',
-            '    eval `spack env deactivate --csh`  # for csh/tcsh',
-        ]
-        tty.msg(*msg)
+        spack.cmd.common.shell_init_instructions(
+            "spack env deactivate",
+            "    eval `spack env deactivate {sh_arg}`",
+        )
         return 1
 
-    if 'SPACK_ENV' not in os.environ:
+    # Error out when -e, -E, -D flags are given, cause they are ambiguous.
+    if args.env or args.no_env or args.env_dir:
+        tty.die('Calling spack env deactivate with --env, --env-dir and --no-env '
+                'is ambiguous')
+
+    if ev.active_environment() is None:
         tty.die('No environment is currently active.')
 
-    cmds = ev.deactivate(shell=args.shell)
+    cmds = spack.environment.shell.deactivate_header(args.shell)
+    env_mods = spack.environment.shell.deactivate()
+    cmds += env_mods.shell_modifications(args.shell)
     sys.stdout.write(cmds)
 
 
@@ -161,6 +207,10 @@ def env_create_setup_parser(subparser):
     subparser.add_argument(
         '-d', '--dir', action='store_true',
         help='create an environment in a specific directory')
+    subparser.add_argument(
+        '--keep-relative', action='store_true',
+        help='copy relative develop paths verbatim into the new environment'
+             ' when initializing from envfile')
     view_opts = subparser.add_mutually_exclusive_group()
     view_opts.add_argument(
         '--without-view', action='store_true',
@@ -188,13 +238,14 @@ def env_create(args):
     if args.envfile:
         with open(args.envfile) as f:
             _env_create(args.create_env, f, args.dir,
-                        with_view=with_view)
+                        with_view=with_view, keep_relative=args.keep_relative)
     else:
         _env_create(args.create_env, None, args.dir,
                     with_view=with_view)
 
 
-def _env_create(name_or_path, init_file=None, dir=False, with_view=None):
+def _env_create(name_or_path, init_file=None, dir=False, with_view=None,
+                keep_relative=False):
     """Create a new environment, with an optional yaml description.
 
     Arguments:
@@ -203,15 +254,22 @@ def _env_create(name_or_path, init_file=None, dir=False, with_view=None):
             spack.yaml or spack.lock
         dir (bool): if True, create an environment in a directory instead
             of a named environment
+        keep_relative (bool): if True, develop paths are copied verbatim into
+            the new environment file, otherwise they may be made absolute if the
+            new environment is in a different location
     """
     if dir:
-        env = ev.Environment(name_or_path, init_file, with_view)
+        env = ev.Environment(name_or_path, init_file, with_view, keep_relative)
         env.write()
         tty.msg("Created environment in %s" % env.path)
+        tty.msg("You can activate this environment with:")
+        tty.msg("  spack env activate %s" % env.path)
     else:
-        env = ev.create(name_or_path, init_file, with_view)
+        env = ev.create(name_or_path, init_file, with_view, keep_relative)
         env.write()
         tty.msg("Created environment '%s' in %s" % (name_or_path, env.path))
+        tty.msg("You can activate this environment with:")
+        tty.msg("  spack env activate %s" % (name_or_path))
     return env
 
 
@@ -307,7 +365,7 @@ def env_view_setup_parser(subparser):
 
 
 def env_view(args):
-    env = ev.get_env(args, 'env view')
+    env = ev.active_environment()
 
     if env:
         if args.action == ViewAction.regenerate:
@@ -334,13 +392,16 @@ def env_status_setup_parser(subparser):
 
 
 def env_status(args):
-    env = ev.get_env(args, 'env status')
+    env = ev.active_environment()
     if env:
         if env.path == os.getcwd():
             tty.msg('Using %s in current directory: %s'
                     % (ev.manifest_name, env.path))
         else:
             tty.msg('In environment %s' % env.name)
+
+        # Check if environment views can be safely activated
+        env.check_views()
     else:
         tty.msg('No active environment')
 
@@ -351,7 +412,8 @@ def env_status(args):
 def env_loads_setup_parser(subparser):
     """list modules for an installed environment '(see spack module loads)'"""
     subparser.add_argument(
-        'env', nargs='?', help='name of env to generate loads file for')
+        '-n', '--module-set-name', default='default',
+        help='module set for which to generate load operations')
     subparser.add_argument(
         '-m', '--module-type', choices=('tcl', 'lmod'),
         help='type of module system to generate loads for')
@@ -359,7 +421,7 @@ def env_loads_setup_parser(subparser):
 
 
 def env_loads(args):
-    env = ev.get_env(args, 'env loads', required=True)
+    env = spack.cmd.require_active_env(cmd_name='env loads')
 
     # Set the module types that have been selected
     module_type = args.module_type
@@ -379,6 +441,80 @@ def env_loads(args):
 
     print('To load this environment, type:')
     print('   source %s' % loads_file)
+
+
+def env_update_setup_parser(subparser):
+    """update environments to the latest format"""
+    subparser.add_argument(
+        metavar='env', dest='update_env',
+        help='name or directory of the environment to activate'
+    )
+    spack.cmd.common.arguments.add_common_arguments(subparser, ['yes_to_all'])
+
+
+def env_update(args):
+    manifest_file = ev.manifest_file(args.update_env)
+    backup_file = manifest_file + ".bkp"
+    needs_update = not ev.is_latest_format(manifest_file)
+
+    if not needs_update:
+        tty.msg('No update needed for the environment "{0}"'.format(args.update_env))
+        return
+
+    proceed = True
+    if not args.yes_to_all:
+        msg = ('The environment "{0}" is going to be updated to the latest '
+               'schema format.\nIf the environment is updated, versions of '
+               'Spack that are older than this version may not be able to '
+               'read it. Spack stores backups of the updated environment '
+               'which can be retrieved with "spack env revert"')
+        tty.msg(msg.format(args.update_env))
+        proceed = tty.get_yes_or_no('Do you want to proceed?', default=False)
+
+    if not proceed:
+        tty.die('Operation aborted.')
+
+    ev.update_yaml(manifest_file, backup_file=backup_file)
+    msg = 'Environment "{0}" has been updated [backup={1}]'
+    tty.msg(msg.format(args.update_env, backup_file))
+
+
+def env_revert_setup_parser(subparser):
+    """restore environments to their state before update"""
+    subparser.add_argument(
+        metavar='env', dest='revert_env',
+        help='name or directory of the environment to activate'
+    )
+    spack.cmd.common.arguments.add_common_arguments(subparser, ['yes_to_all'])
+
+
+def env_revert(args):
+    manifest_file = ev.manifest_file(args.revert_env)
+    backup_file = manifest_file + ".bkp"
+
+    # Check that both the spack.yaml and the backup exist, the inform user
+    # on what is going to happen and ask for confirmation
+    if not os.path.exists(manifest_file):
+        msg = 'cannot fine the manifest file of the environment [file={0}]'
+        tty.die(msg.format(manifest_file))
+    if not os.path.exists(backup_file):
+        msg = 'cannot find the old manifest file to be restored [file={0}]'
+        tty.die(msg.format(backup_file))
+
+    proceed = True
+    if not args.yes_to_all:
+        msg = ('Spack is going to overwrite the current manifest file'
+               ' with a backup copy [manifest={0}, backup={1}]')
+        tty.msg(msg.format(manifest_file, backup_file))
+        proceed = tty.get_yes_or_no('Do you want to proceed?', default=False)
+
+    if not proceed:
+        tty.die('Operation aborted.')
+
+    shutil.copy(backup_file, manifest_file)
+    os.remove(backup_file)
+    msg = 'Environment "{0}" reverted to old state'
+    tty.msg(msg.format(manifest_file))
 
 
 #: Dictionary mapping subcommand names and aliases to functions

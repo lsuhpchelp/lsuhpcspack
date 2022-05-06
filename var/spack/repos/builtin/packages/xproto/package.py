@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,7 +6,7 @@
 from spack import *
 
 
-class Xproto(AutotoolsPackage):
+class Xproto(AutotoolsPackage, XorgPackage):
     """X Window System Core Protocol.
 
     This package provides the headers and specification documents defining
@@ -16,8 +16,8 @@ class Xproto(AutotoolsPackage):
     but are depended upon by many other X Window System packages to provide
     common definitions and porting layer."""
 
-    homepage = "http://cgit.freedesktop.org/xorg/proto/x11proto"
-    url      = "https://www.x.org/archive/individual/proto/xproto-7.0.31.tar.gz"
+    homepage = "https://cgit.freedesktop.org/xorg/proto/x11proto"
+    xorg_mirror_path = "proto/xproto-7.0.31.tar.gz"
 
     version('7.0.31', sha256='6d755eaae27b45c5cc75529a12855fed5de5969b367ed05003944cf901ed43c7')
     version('7.0.29', sha256='628243b3a0fa9b65eda804810ab7238cb88af92fe89efdbc858f25ee5e93a324')

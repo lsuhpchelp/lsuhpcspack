@@ -1,15 +1,17 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import pytest
 import stat
 
+import pytest
+
+import spack.config
 import spack.package_prefs
 import spack.repo
 import spack.util.spack_yaml as syaml
-from spack.config import ConfigScope, ConfigError
+from spack.config import ConfigError, ConfigScope
 from spack.spec import Spec
 from spack.version import Version
 
@@ -70,18 +72,35 @@ def assert_variant_values(spec, **variants):
 
 @pytest.mark.usefixtures('concretize_scope', 'mock_packages')
 class TestConcretizePreferences(object):
-    def test_preferred_variants(self):
-        """Test preferred variants are applied correctly
+    @pytest.mark.parametrize('package_name,variant_value,expected_results', [
+        ('mpileaks', '~debug~opt+shared+static',
+         {'debug': False, 'opt': False, 'shared': True, 'static': True}),
+        # Check that using a list of variants instead of a single string works
+        ('mpileaks', ['~debug', '~opt', '+shared', '+static'],
+         {'debug': False, 'opt': False, 'shared': True, 'static': True}),
+        # Use different values for the variants and check them again
+        ('mpileaks', ['+debug', '+opt', '~shared', '-static'],
+         {'debug': True, 'opt': True, 'shared': False, 'static': False}),
+        # Check a multivalued variant with multiple values set
+        ('multivalue-variant', ['foo=bar,baz', 'fee=bar'],
+         {'foo': ('bar', 'baz'), 'fee': 'bar'}),
+        ('singlevalue-variant', ['fum=why'],
+         {'fum': 'why'})
+    ])
+    def test_preferred_variants(
+            self, package_name, variant_value, expected_results
+    ):
+        """Test preferred variants are applied correctly"""
+        update_packages(package_name, 'variants', variant_value)
+        assert_variant_values(package_name, **expected_results)
+
+    def test_preferred_variants_from_wildcard(self):
         """
-        update_packages('mpileaks', 'variants', '~debug~opt+shared+static')
+        Test that 'foo=*' concretizes to any value
+        """
+        update_packages('multivalue-variant', 'variants', 'foo=bar')
         assert_variant_values(
-            'mpileaks', debug=False, opt=False, shared=True, static=True
-        )
-        update_packages(
-            'mpileaks', 'variants', ['+debug', '+opt', '~shared', '-static']
-        )
-        assert_variant_values(
-            'mpileaks', debug=True, opt=True, shared=False, static=False
+            'multivalue-variant foo=*', foo=('bar',)
         )
 
     def test_preferred_compilers(self):
@@ -100,12 +119,16 @@ class TestConcretizePreferences(object):
         # Try the last available compiler
         compiler = str(compiler_list[-1])
         update_packages('mpileaks', 'compiler', [compiler])
-        spec = concretize('mpileaks')
+        spec = concretize('mpileaks os=redhat6')
         assert spec.compiler == spack.spec.CompilerSpec(compiler)
 
     def test_preferred_target(self, mutable_mock_repo):
-        """Test preferred compilers are applied correctly
-        """
+        """Test preferred targets are applied correctly"""
+        # FIXME: This test was a false negative, since the default and
+        # FIXME: the preferred target were the same
+        if spack.config.get('config:concretizer') == 'original':
+            pytest.xfail('Known bug in the original concretizer')
+
         spec = concretize('mpich')
         default = str(spec.target)
         preferred = str(spec.target.family)
@@ -115,13 +138,13 @@ class TestConcretizePreferences(object):
         assert str(spec.target) == preferred
 
         spec = concretize('mpileaks')
-        assert str(spec['mpileaks'].target) == default
+        assert str(spec['mpileaks'].target) == preferred
         assert str(spec['mpich'].target) == preferred
 
-        update_packages('mpileaks', 'target', [preferred])
+        update_packages('mpileaks', 'target', [default])
         spec = concretize('mpileaks')
-        assert str(spec['mpich'].target) == preferred
-        assert str(spec['mpich'].target) == preferred
+        assert str(spec['mpich'].target) == default
+        assert str(spec['mpich'].target) == default
 
     def test_preferred_versions(self):
         """Test preferred package versions are applied correctly
@@ -185,34 +208,6 @@ class TestConcretizePreferences(object):
         spec.concretize()
         assert spec.version == Version('0.2.15.develop')
 
-    def test_no_virtuals_in_packages_yaml(self):
-        """Verify that virtuals are not allowed in packages.yaml."""
-
-        # set up a packages.yaml file with a vdep as a key.  We use
-        # syaml.load_config here to make sure source lines in the config are
-        # attached to parsed strings, as the error message uses them.
-        conf = syaml.load_config("""\
-mpi:
-    paths:
-      mpi-with-lapack@2.1: /path/to/lapack
-""")
-        spack.config.set('packages', conf, scope='concretize')
-
-        # now when we get the packages.yaml config, there should be an error
-        with pytest.raises(spack.package_prefs.VirtualInPackagesYAMLError):
-            spack.package_prefs.get_packages_config()
-
-    def test_all_is_not_a_virtual(self):
-        """Verify that `all` is allowed in packages.yaml."""
-        conf = syaml.load_config("""\
-all:
-        variants: [+mpi]
-""")
-        spack.config.set('packages', conf, scope='concretize')
-
-        # should be no error for 'all':
-        spack.package_prefs.get_packages_config()
-
     def test_external_mpi(self):
         # make sure this doesn't give us an external first.
         spec = Spec('mpi')
@@ -226,8 +221,9 @@ all:
         mpi: [mpich]
 mpich:
     buildable: false
-    paths:
-        mpich@3.0.4: /dummy/path
+    externals:
+    - spec: mpich@3.0.4
+      prefix: /dummy/path
 """)
         spack.config.set('packages', conf, scope='concretize')
 
@@ -235,6 +231,102 @@ mpich:
         spec = Spec('mpi')
         spec.concretize()
         assert spec['mpich'].external_path == '/dummy/path'
+
+    def test_external_module(self, monkeypatch):
+        """Test that packages can find externals specified by module
+
+        The specific code for parsing the module is tested elsewhere.
+        This just tests that the preference is accounted for"""
+        # make sure this doesn't give us an external first.
+        def mock_module(cmd, module):
+            return 'prepend-path PATH /dummy/path'
+        monkeypatch.setattr(spack.util.module_cmd, 'module', mock_module)
+
+        spec = Spec('mpi')
+        spec.concretize()
+        assert not spec['mpi'].external
+
+        # load config
+        conf = syaml.load_config("""\
+all:
+    providers:
+        mpi: [mpich]
+mpi:
+    buildable: false
+    externals:
+    - spec: mpich@3.0.4
+      modules: [dummy]
+""")
+        spack.config.set('packages', conf, scope='concretize')
+
+        # ensure that once config is in place, external is used
+        spec = Spec('mpi')
+        spec.concretize()
+        assert spec['mpich'].external_path == '/dummy/path'
+
+    def test_buildable_false(self):
+        conf = syaml.load_config("""\
+libelf:
+  buildable: false
+""")
+        spack.config.set('packages', conf, scope='concretize')
+        spec = Spec('libelf')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+        spec = Spec('mpich')
+        assert spack.package_prefs.is_spec_buildable(spec)
+
+    def test_buildable_false_virtual(self):
+        conf = syaml.load_config("""\
+mpi:
+  buildable: false
+""")
+        spack.config.set('packages', conf, scope='concretize')
+        spec = Spec('libelf')
+        assert spack.package_prefs.is_spec_buildable(spec)
+
+        spec = Spec('mpich')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+    def test_buildable_false_all(self):
+        conf = syaml.load_config("""\
+all:
+  buildable: false
+""")
+        spack.config.set('packages', conf, scope='concretize')
+        spec = Spec('libelf')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+        spec = Spec('mpich')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+    def test_buildable_false_all_true_package(self):
+        conf = syaml.load_config("""\
+all:
+  buildable: false
+libelf:
+  buildable: true
+""")
+        spack.config.set('packages', conf, scope='concretize')
+        spec = Spec('libelf')
+        assert spack.package_prefs.is_spec_buildable(spec)
+
+        spec = Spec('mpich')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+    def test_buildable_false_all_true_virtual(self):
+        conf = syaml.load_config("""\
+all:
+  buildable: false
+mpi:
+  buildable: true
+""")
+        spack.config.set('packages', conf, scope='concretize')
+        spec = Spec('libelf')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+        spec = Spec('mpich')
+        assert spack.package_prefs.is_spec_buildable(spec)
 
     def test_config_permissions_from_all(self, configure_permissions):
         # Although these aren't strictly about concretization, they are
@@ -282,3 +374,45 @@ mpich:
         spec = Spec('callpath')
         with pytest.raises(ConfigError):
             spack.package_prefs.get_package_permissions(spec)
+
+    @pytest.mark.regression('20040')
+    def test_variant_not_flipped_to_pull_externals(self):
+        """Test that a package doesn't prefer pulling in an
+        external to using the default value of a variant.
+        """
+        s = Spec('vdefault-or-external-root').concretized()
+
+        assert '~external' in s['vdefault-or-external']
+        assert 'externaltool' not in s
+
+    @pytest.mark.regression('25585')
+    def test_dependencies_cant_make_version_parent_score_better(self):
+        """Test that a package can't select a worse version for a
+        dependent because doing so it can pull-in a dependency
+        that makes the overall version score even or better and maybe
+        has a better score in some lower priority criteria.
+        """
+        s = Spec('version-test-root').concretized()
+
+        assert s.satisfies('^version-test-pkg@2.4.6')
+        assert 'version-test-dependency-preferred' not in s
+
+    @pytest.mark.regression('26598')
+    def test_multivalued_variants_are_lower_priority_than_providers(self):
+        """Test that the rule to maximize the number of values for multivalued
+        variants is considered at lower priority than selecting the default
+        provider for virtual dependencies.
+
+        This ensures that we don't e.g. select openmpi over mpich even if we
+        specified mpich as the default mpi provider, just because openmpi supports
+        more fabrics by default.
+        """
+        with spack.config.override(
+            'packages:all', {
+                'providers': {
+                    'somevirtual': ['some-virtual-preferred']
+                }
+            }
+        ):
+            s = Spec('somevirtual').concretized()
+            assert s.name == 'some-virtual-preferred'

@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,42 +7,42 @@ from __future__ import print_function
 
 import codecs
 import errno
-import re
+import multiprocessing.pool
 import os
 import os.path
+import re
 import shutil
 import ssl
 import sys
 import traceback
 
-from six.moves.urllib.request import urlopen, Request
+import six
 from six.moves.urllib.error import URLError
-import multiprocessing.pool
+from six.moves.urllib.request import Request, urlopen
 
-try:
+import llnl.util.lang
+import llnl.util.tty as tty
+from llnl.util.filesystem import mkdirp
+
+import spack.config
+import spack.error
+import spack.url
+import spack.util.crypto
+import spack.util.gcs as gcs_util
+import spack.util.s3 as s3_util
+import spack.util.url as url_util
+from spack.util.compression import ALLOWED_ARCHIVE_TYPES
+
+if sys.version_info < (3, 0):
     # Python 2 had these in the HTMLParser package.
-    from HTMLParser import HTMLParser, HTMLParseError  # novm
-except ImportError:
+    from HTMLParser import HTMLParseError, HTMLParser  # novm
+else:
     # In Python 3, things moved to html.parser
     from html.parser import HTMLParser
 
     # Also, HTMLParseError is deprecated and never raised.
     class HTMLParseError(Exception):
         pass
-
-from llnl.util.filesystem import mkdirp
-import llnl.util.tty as tty
-
-import spack.cmd
-import spack.config
-import spack.error
-import spack.url
-import spack.util.crypto
-import spack.util.s3 as s3_util
-import spack.util.url as url_util
-
-from spack.util.compression import ALLOWED_ARCHIVE_TYPES
-
 
 # Timeout in seconds for web requests
 _timeout = 10
@@ -63,34 +63,6 @@ class LinkParser(HTMLParser):
                     self.links.append(val)
 
 
-class NonDaemonProcess(multiprocessing.Process):
-    """Process that allows sub-processes, so pools can have sub-pools."""
-    @property
-    def daemon(self):
-        return False
-
-    @daemon.setter
-    def daemon(self, value):
-        pass
-
-
-if sys.version_info[0] < 3:
-    class NonDaemonPool(multiprocessing.pool.Pool):
-        """Pool that uses non-daemon processes"""
-        Process = NonDaemonProcess
-else:
-
-    class NonDaemonContext(type(multiprocessing.get_context())):  # novm
-        Process = NonDaemonProcess
-
-    class NonDaemonPool(multiprocessing.pool.Pool):
-        """Pool that uses non-daemon processes"""
-
-        def __init__(self, *args, **kwargs):
-            kwargs['context'] = NonDaemonContext()
-            super(NonDaemonPool, self).__init__(*args, **kwargs)
-
-
 def uses_ssl(parsed_url):
     if parsed_url.scheme == 'https':
         return True
@@ -102,6 +74,10 @@ def uses_ssl(parsed_url):
 
         if url_util.parse(endpoint_url, scheme='https').scheme == 'https':
             return True
+
+    elif parsed_url.scheme == 'gs':
+        tty.debug("(uses_ssl) GCS Blob is https")
+        return True
 
     return False
 
@@ -132,7 +108,8 @@ def read_from_url(url, accept_content_type=None):
         else:
             # User has explicitly indicated that they do not want SSL
             # verification.
-            context = ssl._create_unverified_context()
+            if not __UNABLE_TO_VERIFY_SSL:
+                context = ssl._create_unverified_context()
 
     req = Request(url_util.format(url))
     content_type = None
@@ -205,6 +182,8 @@ def push_to_url(
                     # needs to be done in separate steps.
                     shutil.copy2(local_file_path, remote_file_path)
                     os.remove(local_file_path)
+                else:
+                    raise
 
     elif remote_url.scheme == 's3':
         if extra_args is None:
@@ -218,6 +197,12 @@ def push_to_url(
         s3.upload_file(local_file_path, remote_url.netloc,
                        remote_path, ExtraArgs=extra_args)
 
+        if not keep_original:
+            os.remove(local_file_path)
+
+    elif remote_url.scheme == 'gs':
+        gcs = gcs_util.GCSBlob(remote_url)
+        gcs.upload_to_blob(local_file_path)
         if not keep_original:
             os.remove(local_file_path)
 
@@ -235,35 +220,87 @@ def url_exists(url):
 
     if url.scheme == 's3':
         s3 = s3_util.create_s3_session(url)
-        from botocore.exceptions import ClientError
         try:
-            s3.get_object(Bucket=url.netloc, Key=url.path)
+            s3.get_object(Bucket=url.netloc, Key=url.path.lstrip('/'))
             return True
-        except ClientError as err:
+        except s3.ClientError as err:
             if err.response['Error']['Code'] == 'NoSuchKey':
                 return False
             raise err
+
+    elif url.scheme == 'gs':
+        gcs = gcs_util.GCSBlob(url)
+        return gcs.exists()
 
     # otherwise, just try to "read" from the URL, and assume that *any*
     # non-throwing response contains the resource represented by the URL
     try:
         read_from_url(url)
         return True
-    except URLError:
+    except (SpackWebError, URLError):
         return False
 
 
-def remove_url(url):
+def _debug_print_delete_results(result):
+    if 'Deleted' in result:
+        for d in result['Deleted']:
+            tty.debug('Deleted {0}'.format(d['Key']))
+    if 'Errors' in result:
+        for e in result['Errors']:
+            tty.debug('Failed to delete {0} ({1})'.format(
+                e['Key'], e['Message']))
+
+
+def remove_url(url, recursive=False):
     url = url_util.parse(url)
 
     local_path = url_util.local_file_path(url)
     if local_path:
-        os.remove(local_path)
+        if recursive:
+            shutil.rmtree(local_path)
+        else:
+            os.remove(local_path)
         return
 
     if url.scheme == 's3':
         s3 = s3_util.create_s3_session(url)
-        s3.delete_object(Bucket=url.netloc, Key=url.path)
+        bucket = url.netloc
+        if recursive:
+            # Because list_objects_v2 can only return up to 1000 items
+            # at a time, we have to paginate to make sure we get it all
+            prefix = url.path.strip('/')
+            paginator = s3.get_paginator('list_objects_v2')
+            pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+
+            delete_request = {'Objects': []}
+            for item in pages.search('Contents'):
+                if not item:
+                    continue
+
+                delete_request['Objects'].append({'Key': item['Key']})
+
+                # Make sure we do not try to hit S3 with a list of more
+                # than 1000 items
+                if len(delete_request['Objects']) >= 1000:
+                    r = s3.delete_objects(Bucket=bucket, Delete=delete_request)
+                    _debug_print_delete_results(r)
+                    delete_request = {'Objects': []}
+
+            # Delete any items that remain
+            if len(delete_request['Objects']):
+                r = s3.delete_objects(Bucket=bucket, Delete=delete_request)
+                _debug_print_delete_results(r)
+        else:
+            s3.delete_object(Bucket=bucket, Key=url.path.lstrip('/'))
+        return
+
+    elif url.scheme == 'gs':
+        if recursive:
+            bucket = gcs_util.GCSBucket(url)
+            bucket.destroy(recursive=recursive)
+        else:
+            blob = gcs_util.GCSBlob(url)
+            blob.delete_blob()
         return
 
     # Don't even try for other URL schemes.
@@ -320,121 +357,174 @@ def _iter_s3_prefix(client, url, num_entries=1024):
             break
 
 
-def list_url(url):
+def _iter_local_prefix(path):
+    for root, _, files in os.walk(path):
+        for f in files:
+            yield os.path.relpath(os.path.join(root, f), path)
+
+
+def list_url(url, recursive=False):
     url = url_util.parse(url)
 
     local_path = url_util.local_file_path(url)
     if local_path:
-        return os.listdir(local_path)
+        if recursive:
+            return list(_iter_local_prefix(local_path))
+        return [subpath for subpath in os.listdir(local_path)
+                if os.path.isfile(os.path.join(local_path, subpath))]
 
     if url.scheme == 's3':
         s3 = s3_util.create_s3_session(url)
+        if recursive:
+            return list(_iter_s3_prefix(s3, url))
+
         return list(set(
             key.split('/', 1)[0]
             for key in _iter_s3_prefix(s3, url)))
 
+    elif url.scheme == 'gs':
+        gcs = gcs_util.GCSBucket(url)
+        return gcs.get_all_blobs(recursive=recursive)
 
-def _spider(url, visited, root, depth, max_depth, raise_on_error):
-    """Fetches URL and any pages it links to up to max_depth.
 
-       depth should initially be zero, and max_depth is the max depth of
-       links to follow from the root.
+def spider(root_urls, depth=0, concurrency=32):
+    """Get web pages from root URLs.
 
-       Prints out a warning only if the root can't be fetched; it ignores
-       errors with pages that the root links to.
+    If depth is specified (e.g., depth=2), then this will also follow
+    up to <depth> levels of links from each root.
 
-       Returns a tuple of:
-       - pages: dict of pages visited (URL) mapped to their full text.
-       - links: set of links encountered while visiting the pages.
+    Args:
+        root_urls (str or list): root urls used as a starting point
+            for spidering
+        depth (int): level of recursion into links
+        concurrency (int): number of simultaneous requests that can be sent
+
+    Returns:
+        A dict of pages visited (URL) mapped to their full text and the
+        set of visited links.
     """
-    pages = {}     # dict from page URL -> text content.
-    links = set()  # set of all links seen on visited pages.
+    # Cache of visited links, meant to be captured by the closure below
+    _visited = set()
 
-    try:
-        response_url, _, response = read_from_url(url, 'text/html')
-        if not response_url or not response:
-            return pages, links
+    def _spider(url, collect_nested):
+        """Fetches URL and any pages it links to.
 
-        page = codecs.getreader('utf-8')(response).read()
-        pages[response_url] = page
+        Prints out a warning only if the root can't be fetched; it ignores
+        errors with pages that the root links to.
 
-        # Parse out the links in the page
-        link_parser = LinkParser()
+        Args:
+            url (str): url being fetched and searched for links
+            collect_nested (bool): whether we want to collect arguments
+                for nested spidering on the links found in this url
+
+        Returns:
+            A tuple of:
+            - pages: dict of pages visited (URL) mapped to their full text.
+            - links: set of links encountered while visiting the pages.
+            - spider_args: argument for subsequent call to spider
+        """
+        pages = {}  # dict from page URL -> text content.
+        links = set()  # set of all links seen on visited pages.
         subcalls = []
-        link_parser.feed(page)
 
-        while link_parser.links:
-            raw_link = link_parser.links.pop()
-            abs_link = url_util.join(
-                response_url,
-                raw_link.strip(),
-                resolve_href=True)
-            links.add(abs_link)
+        try:
+            response_url, _, response = read_from_url(url, 'text/html')
+            if not response_url or not response:
+                return pages, links, subcalls
 
-            # Skip stuff that looks like an archive
-            if any(raw_link.endswith(suf) for suf in ALLOWED_ARCHIVE_TYPES):
-                continue
+            page = codecs.getreader('utf-8')(response).read()
+            pages[response_url] = page
 
-            # Skip things outside the root directory
-            if not abs_link.startswith(root):
-                continue
+            # Parse out the links in the page
+            link_parser = LinkParser()
+            link_parser.feed(page)
 
-            # Skip already-visited links
-            if abs_link in visited:
-                continue
+            while link_parser.links:
+                raw_link = link_parser.links.pop()
+                abs_link = url_util.join(
+                    response_url,
+                    raw_link.strip(),
+                    resolve_href=True)
+                links.add(abs_link)
 
-            # If we're not at max depth, follow links.
-            if depth < max_depth:
-                subcalls.append((abs_link, visited, root,
-                                 depth + 1, max_depth, raise_on_error))
-                visited.add(abs_link)
+                # Skip stuff that looks like an archive
+                if any(raw_link.endswith(s) for s in ALLOWED_ARCHIVE_TYPES):
+                    continue
 
-        if subcalls:
-            pool = NonDaemonPool(processes=len(subcalls))
-            try:
-                results = pool.map(_spider_wrapper, subcalls)
+                # Skip already-visited links
+                if abs_link in _visited:
+                    continue
 
-                for sub_pages, sub_links in results:
-                    pages.update(sub_pages)
-                    links.update(sub_links)
+                # If we're not at max depth, follow links.
+                if collect_nested:
+                    subcalls.append((abs_link,))
+                    _visited.add(abs_link)
 
-            finally:
-                pool.terminate()
-                pool.join()
+        except URLError as e:
+            tty.debug(str(e))
 
-    except URLError as e:
-        tty.debug(e)
+            if hasattr(e, 'reason') and isinstance(e.reason, ssl.SSLError):
+                tty.warn("Spack was unable to fetch url list due to a "
+                         "certificate verification problem. You can try "
+                         "running spack -k, which will not check SSL "
+                         "certificates. Use this at your own risk.")
 
-        if hasattr(e, 'reason') and isinstance(e.reason, ssl.SSLError):
-            tty.warn("Spack was unable to fetch url list due to a certificate "
-                     "verification problem. You can try running spack -k, "
-                     "which will not check SSL certificates. Use this at your "
-                     "own risk.")
+        except HTMLParseError as e:
+            # This error indicates that Python's HTML parser sucks.
+            msg = "Got an error parsing HTML."
 
-        if raise_on_error:
-            raise NoNetworkConnectionError(str(e), url)
+            # Pre-2.7.3 Pythons in particular have rather prickly HTML parsing.
+            if sys.version_info[:3] < (2, 7, 3):
+                msg += " Use Python 2.7.3 or newer for better HTML parsing."
 
-    except HTMLParseError as e:
-        # This error indicates that Python's HTML parser sucks.
-        msg = "Got an error parsing HTML."
+            tty.warn(msg, url, "HTMLParseError: " + str(e))
 
-        # Pre-2.7.3 Pythons in particular have rather prickly HTML parsing.
-        if sys.version_info[:3] < (2, 7, 3):
-            msg += " Use Python 2.7.3 or newer for better HTML parsing."
+        except Exception as e:
+            # Other types of errors are completely ignored,
+            # except in debug mode
+            tty.debug("Error in _spider: %s:%s" % (type(e), str(e)),
+                      traceback.format_exc())
 
-        tty.warn(msg, url, "HTMLParseError: " + str(e))
+        finally:
+            tty.debug("SPIDER: [url={0}]".format(url))
 
-    except Exception as e:
-        # Other types of errors are completely ignored, except in debug mode.
-        tty.debug("Error in _spider: %s:%s" % (type(e), e),
-                  traceback.format_exc())
+        return pages, links, subcalls
+
+    if isinstance(root_urls, six.string_types):
+        root_urls = [root_urls]
+
+    # Clear the local cache of visited pages before starting the search
+    _visited.clear()
+
+    current_depth = 0
+    pages, links, spider_args = {}, set(), []
+
+    collect = current_depth < depth
+    for root in root_urls:
+        root = url_util.parse(root)
+        spider_args.append((root, collect))
+
+    tp = multiprocessing.pool.ThreadPool(processes=concurrency)
+    try:
+        while current_depth <= depth:
+            tty.debug("SPIDER: [depth={0}, max_depth={1}, urls={2}]".format(
+                current_depth, depth, len(spider_args))
+            )
+            results = tp.map(llnl.util.lang.star(_spider), spider_args)
+            spider_args = []
+            collect = current_depth < depth
+            for sub_pages, sub_links, sub_spider_args in results:
+                sub_spider_args = [x + (collect,) for x in sub_spider_args]
+                pages.update(sub_pages)
+                links.update(sub_links)
+                spider_args.extend(sub_spider_args)
+
+            current_depth += 1
+    finally:
+        tp.terminate()
+        tp.join()
 
     return pages, links
-
-
-def _spider_wrapper(args):
-    """Wrapper for using spider with multiprocessing."""
-    return _spider(*args)
 
 
 def _urlopen(req, *args, **kwargs):
@@ -445,50 +535,44 @@ def _urlopen(req, *args, **kwargs):
     except AttributeError:
         pass
 
-    # We don't pass 'context' parameter because it was only introduced starting
+    # Note: 'context' parameter was only introduced starting
     # with versions 2.7.9 and 3.4.3 of Python.
-    if 'context' in kwargs:
+    if __UNABLE_TO_VERIFY_SSL:
         del kwargs['context']
 
     opener = urlopen
     if url_util.parse(url).scheme == 's3':
         import spack.s3_handler
         opener = spack.s3_handler.open
+    elif url_util.parse(url).scheme == 'gs':
+        import spack.gcs_handler
+        opener = spack.gcs_handler.gcs_open
 
-    return opener(req, *args, **kwargs)
-
-
-def spider(root, depth=0):
-    """Gets web pages from a root URL.
-
-       If depth is specified (e.g., depth=2), then this will also follow
-       up to <depth> levels of links from the root.
-
-       This will spawn processes to fetch the children, for much improved
-       performance over a sequential fetch.
-
-    """
-    root = url_util.parse(root)
-    pages, links = _spider(root, set(), root, 0, depth, False)
-    return pages, links
+    try:
+        return opener(req, *args, **kwargs)
+    except TypeError as err:
+        # If the above fails because of 'context', call without 'context'.
+        if 'context' in kwargs and 'context' in str(err):
+            del kwargs['context']
+        return opener(req, *args, **kwargs)
 
 
-def find_versions_of_archive(archive_urls, list_url=None, list_depth=0):
+def find_versions_of_archive(
+        archive_urls, list_url=None, list_depth=0, concurrency=32
+):
     """Scrape web pages for new versions of a tarball.
 
-    Arguments:
+    Args:
         archive_urls (str or list or tuple): URL or sequence of URLs for
             different versions of a package. Typically these are just the
             tarballs from the package file itself. By default, this searches
             the parent directories of archives.
-
-    Keyword Arguments:
         list_url (str or None): URL for a listing of archives.
             Spack will scrape these pages for download links that look
             like the archive URL.
-
-        list_depth (int): Max depth to follow links on list_url pages.
+        list_depth (int): max depth to follow links on list_url pages.
             Defaults to 0.
+        concurrency (int): maximum number of concurrent requests
     """
     if not isinstance(archive_urls, (list, tuple)):
         archive_urls = [archive_urls]
@@ -509,12 +593,7 @@ def find_versions_of_archive(archive_urls, list_url=None, list_depth=0):
     list_urls |= additional_list_urls
 
     # Grab some web pages to scrape.
-    pages = {}
-    links = set()
-    for lurl in list_urls:
-        pg, lnk = spider(lurl, depth=list_depth)
-        pages.update(pg)
-        links.update(lnk)
+    pages, links = spider(list_urls, depth=list_depth, concurrency=concurrency)
 
     # Scrape them for archive URLs
     regexes = []
@@ -544,7 +623,10 @@ def find_versions_of_archive(archive_urls, list_url=None, list_depth=0):
         #   .sha256
         #   .sig
         # However, SourceForge downloads still need to end in '/download'.
-        url_regex += r'(\/download)?$'
+        url_regex += r'(\/download)?'
+        # PyPI adds #sha256=... to the end of the URL
+        url_regex += '(#sha256=.*)?'
+        url_regex += '$'
 
         regexes.append(url_regex)
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,15 +6,15 @@
 from spack import *
 
 
-class Fixesproto(AutotoolsPackage):
+class Fixesproto(AutotoolsPackage, XorgPackage):
     """X Fixes Extension.
 
     The extension makes changes to many areas of the protocol to resolve
     issues raised by application interaction with core protocol mechanisms
     that cannot be adequately worked around on the client side of the wire."""
 
-    homepage = "http://cgit.freedesktop.org/xorg/proto/fixesproto"
-    url      = "https://www.x.org/archive/individual/proto/fixesproto-5.0.tar.gz"
+    homepage = "https://cgit.freedesktop.org/xorg/proto/fixesproto"
+    xorg_mirror_path = "proto/fixesproto-5.0.tar.gz"
 
     version('5.0', sha256='67865a0e3cdc7dec1fd676f0927f7011ad4036c18eb320a2b41dbd56282f33b8')
 

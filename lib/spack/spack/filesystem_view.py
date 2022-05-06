@@ -1,43 +1,132 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import filecmp
 import functools as ft
 import os
 import re
 import shutil
 import sys
 
-from llnl.util.link_tree import LinkTree, MergeConflictError
+from ordereddict_backport import OrderedDict
+
 from llnl.util import tty
-from llnl.util.lang import match_predicate, index_by
+from llnl.util.filesystem import mkdirp, remove_dead_links, remove_empty_directories
+from llnl.util.lang import index_by, match_predicate
+from llnl.util.link_tree import LinkTree, MergeConflictError
 from llnl.util.tty.color import colorize
-from llnl.util.filesystem import (
-    mkdirp, remove_dead_links, remove_empty_directories)
 
-import spack.util.spack_yaml as s_yaml
-
+import spack.config
+import spack.projections
+import spack.schema.projections
 import spack.spec
 import spack.store
-import spack.schema.projections
-import spack.config
+import spack.util.spack_json as s_json
+import spack.util.spack_yaml as s_yaml
+from spack.directory_layout import (
+    ExtensionAlreadyInstalledError,
+    YamlViewExtensionsLayout,
+)
 from spack.error import SpackError
-from spack.directory_layout import ExtensionAlreadyInstalledError
-from spack.directory_layout import YamlViewExtensionsLayout
-
 
 # compatability
 if sys.version_info < (3, 0):
-    from itertools import imap as map
     from itertools import ifilter as filter
+    from itertools import imap as map
     from itertools import izip as zip
 
 __all__ = ["FilesystemView", "YamlFilesystemView"]
 
 
 _projections_path = '.spack/projections.yaml'
+
+
+def view_symlink(src, dst, **kwargs):
+    # keyword arguments are irrelevant
+    # here to fit required call signature
+    os.symlink(src, dst)
+
+
+def view_hardlink(src, dst, **kwargs):
+    # keyword arguments are irrelevant
+    # here to fit required call signature
+    os.link(src, dst)
+
+
+def view_copy(src, dst, view, spec=None):
+    """
+    Copy a file from src to dst.
+
+    Use spec and view to generate relocations
+    """
+    shutil.copy2(src, dst)
+    if spec and not spec.external:
+        # Not metadata, we have to relocate it
+
+        # Get information on where to relocate from/to
+
+        # This is vestigial code for the *old* location of sbang. Previously,
+        # sbang was a bash script, and it lived in the spack prefix. It is
+        # now a POSIX script that lives in the install prefix. Old packages
+        # will have the old sbang location in their shebangs.
+        # TODO: Not sure which one to use...
+        import spack.hooks.sbang as sbang
+
+        # Break a package include cycle
+        import spack.relocate
+
+        orig_sbang = '#!/bin/bash {0}/bin/sbang'.format(spack.paths.spack_root)
+        new_sbang = sbang.sbang_shebang_line()
+
+        prefix_to_projection = OrderedDict({
+            spec.prefix: view.get_projection_for_spec(spec)})
+
+        for dep in spec.traverse():
+            if not dep.external:
+                prefix_to_projection[dep.prefix] = \
+                    view.get_projection_for_spec(dep)
+
+        if spack.relocate.is_binary(dst):
+            spack.relocate.relocate_text_bin(
+                binaries=[dst],
+                prefixes=prefix_to_projection
+            )
+        else:
+            prefix_to_projection[spack.store.layout.root] = view._root
+            prefix_to_projection[orig_sbang] = new_sbang
+            spack.relocate.relocate_text(
+                files=[dst],
+                prefixes=prefix_to_projection
+            )
+        try:
+            stat = os.stat(src)
+            os.chown(dst, stat.st_uid, stat.st_gid)
+        except OSError:
+            tty.debug('Can\'t change the permissions for %s' % dst)
+
+
+def view_func_parser(parsed_name):
+    # What method are we using for this view
+    if parsed_name in ("hardlink", "hard"):
+        return view_hardlink
+    elif parsed_name in ("copy", "relocate"):
+        return view_copy
+    elif parsed_name in ("add", "symlink", "soft"):
+        return view_symlink
+    else:
+        raise ValueError("invalid link type for view: '%s'" % parsed_name)
+
+
+def inverse_view_func_parser(view_type):
+    # get string based on view type
+    if view_type is view_hardlink:
+        link_name = 'hardlink'
+    elif view_type is view_copy:
+        link_name = 'copy'
+    else:
+        link_name = 'symlink'
+    return link_name
 
 
 class FilesystemView(object):
@@ -66,8 +155,11 @@ class FilesystemView(object):
         self.projections = kwargs.get('projections', {})
 
         self.ignore_conflicts = kwargs.get("ignore_conflicts", False)
-        self.link = kwargs.get("link", os.symlink)
         self.verbose = kwargs.get("verbose", False)
+
+        # Setup link function to include view
+        link_func = kwargs.get("link", view_symlink)
+        self.link = ft.partial(link_func, view=self)
 
     def add_specs(self, *specs, **kwargs):
         """
@@ -316,7 +408,7 @@ class YamlFilesystemView(FilesystemView):
 
         ignore = ignore or (lambda f: False)
         ignore_file = match_predicate(
-            self.layout.hidden_file_paths, ignore)
+            self.layout.hidden_file_regexes, ignore)
 
         # check for dir conflicts
         conflicts = tree.find_dir_conflicts(view_dst, ignore_file)
@@ -342,7 +434,7 @@ class YamlFilesystemView(FilesystemView):
 
         ignore = ignore or (lambda f: False)
         ignore_file = match_predicate(
-            self.layout.hidden_file_paths, ignore)
+            self.layout.hidden_file_regexes, ignore)
 
         merge_map = tree.get_file_map(view_dst, ignore_file)
         pkg.remove_files_from_view(self, merge_map)
@@ -350,17 +442,42 @@ class YamlFilesystemView(FilesystemView):
         # now unmerge the directory tree
         tree.unmerge_directories(view_dst, ignore_file)
 
-    def remove_file(self, src, dest):
-        if not os.path.lexists(dest):
-            tty.warn("Tried to remove %s which does not exist" % dest)
-            return
-        if not os.path.islink(dest):
-            raise ValueError("%s is not a link tree!" % dest)
-        # remove if dest is a hardlink/symlink to src; this will only
-        # be false if two packages are merged into a prefix and have a
-        # conflicting file
-        if filecmp.cmp(src, dest, shallow=True):
-            os.remove(dest)
+    def remove_files(self, files):
+        def needs_file(spec, file):
+            # convert the file we want to remove to a source in this spec
+            projection = self.get_projection_for_spec(spec)
+            relative_path = os.path.relpath(file, projection)
+            test_path = os.path.join(spec.prefix, relative_path)
+
+            # check if this spec owns a file of that name (through the
+            # manifest in the metadata dir, which we have in the view).
+            manifest_file = os.path.join(self.get_path_meta_folder(spec),
+                                         spack.store.layout.manifest_file_name)
+            try:
+                with open(manifest_file, 'r') as f:
+                    manifest = s_json.load(f)
+            except (OSError, IOError):
+                # if we can't load it, assume it doesn't know about the file.
+                manifest = {}
+            return test_path in manifest
+
+        specs = self.get_all_specs()
+
+        for file in files:
+            if not os.path.lexists(file):
+                tty.warn("Tried to remove %s which does not exist" % file)
+                continue
+
+            # remove if file is not owned by any other package in the view
+            # This will only be false if two packages are merged into a prefix
+            # and have a conflicting file
+
+            # check all specs for whether they own the file. That include the spec
+            # we are currently removing, as we remove files before unlinking the
+            # metadata directory.
+            if len([s for s in specs if needs_file(s, file)]) <= 1:
+                tty.debug("Removing file " + file)
+                os.remove(file)
 
     def check_added(self, spec):
         assert spec.concrete
@@ -470,14 +587,9 @@ class YamlFilesystemView(FilesystemView):
         if spec.package.extendee_spec:
             locator_spec = spec.package.extendee_spec
 
-        all_fmt_str = None
-        for spec_like, fmt_str in self.projections.items():
-            if locator_spec.satisfies(spec_like, strict=True):
-                return os.path.join(self._root, locator_spec.format(fmt_str))
-            elif spec_like == 'all':
-                all_fmt_str = fmt_str
-        if all_fmt_str:
-            return os.path.join(self._root, locator_spec.format(all_fmt_str))
+        proj = spack.projections.get_projection(self.projections, locator_spec)
+        if proj:
+            return os.path.join(self._root, locator_spec.format(proj))
         return self._root
 
     def get_all_specs(self):

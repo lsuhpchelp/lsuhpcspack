@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,11 +13,14 @@ class Grass(AutotoolsPackage):
        graphics and maps production, spatial modeling, and visualization."""
 
     homepage = "https://grass.osgeo.org"
-    url      = "https://grass.osgeo.org/grass78/source/grass-7.8.2.tar.gz"
+    url      = "https://grass.osgeo.org/grass78/source/grass-7.8.5.tar.gz"
     list_url = "https://grass.osgeo.org/download/software/sources/"
+    git      = "https://github.com/OSGeo/grass.git"
 
     maintainers = ['adamjstewart']
 
+    version('master', branch='master')
+    version('7.8.5', sha256='a359bb665524ecccb643335d70f5436b1c84ffb6a0e428b78dffebacd983ff37')
     version('7.8.2', sha256='33576f7078f805b39ca20c2fa416ac79c64260c0581072a6dc7d813f53aa9abb')
     version('7.8.1', sha256='6ae578fd67afcce7abec4ba4505dcc55b3d2dfe0ca46b99d966cb148c654abb3')
     version('7.8.0', sha256='4b1192294e959ffd962282344e4ff325c4472f73abe605e246a1da3beda7ccfa')
@@ -55,10 +58,10 @@ class Grass(AutotoolsPackage):
     variant('geos',      default=False, description='Enable GEOS support')
     variant('x',         default=False, description='Use the X Window System')
 
-    # http://htmlpreview.github.io/?https://github.com/OSGeo/grass/blob/master/REQUIREMENTS.html
+    # https://htmlpreview.github.io/?https://github.com/OSGeo/grass/blob/master/REQUIREMENTS.html
     # General requirements
     depends_on('gmake@3.81:', type='build')
-    depends_on('libiconv')
+    depends_on('iconv')
     depends_on('zlib')
     depends_on('flex', type='build')
     depends_on('bison', type='build')
@@ -66,7 +69,10 @@ class Grass(AutotoolsPackage):
     depends_on('proj@:4', when='@:7.5')
     # GRASS 7.8.0 was supposed to support PROJ 6, but it still checks for
     # share/proj/epsg, which was removed in PROJ 6
-    depends_on('proj@:5', when='@:7.8')
+    depends_on('proj@:5', when='@:7.8.0')
+    # PROJ6 support released in GRASS 7.8.1
+    # https://courses.neteler.org/grass-gis-7-8-1-released-with-proj-6-and-gdal-3-support/
+    depends_on('proj@6:', when='@7.8.1:')
     depends_on('python@2.7:', type=('build', 'run'))
     depends_on('python@2.7:2.8', when='@:7.6', type=('build', 'run'))
     depends_on('py-six', when='@7.8:', type=('build', 'run'))
@@ -88,7 +94,7 @@ class Grass(AutotoolsPackage):
     depends_on('opencl', when='+opencl')
     depends_on('bzip2', when='+bzlib')
     depends_on('zstd', when='+zstd')
-    depends_on('gdal', when='+gdal')  # required?
+    depends_on('gdal@:3.2', when='+gdal')
     depends_on('liblas', when='+liblas')
     depends_on('wxwidgets', when='+wxwidgets')
     depends_on('py-wxpython@2.8.10.1:', when='+wxwidgets', type=('build', 'run'))
@@ -254,5 +260,8 @@ class Grass(AutotoolsPackage):
     # hence invoke the following function afterwards
     @run_after('configure')
     def fix_iconv_linking(self):
+        if self.spec['iconv'].name != 'libiconv':
+            return
+
         makefile = FileFilter('include/Make/Platform.make')
         makefile.filter(r'^ICONVLIB\s*=.*', 'ICONVLIB = -liconv')

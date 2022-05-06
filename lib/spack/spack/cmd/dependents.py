@@ -1,7 +1,9 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import sys
 
 import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
@@ -30,7 +32,7 @@ def setup_parser(subparser):
 
 def inverted_dependencies():
     """Iterate through all packages and return a dictionary mapping package
-       names to possible dependnecies.
+       names to possible dependencies.
 
        Virtual packages are included as sources, so that you can query
        dependents of, e.g., `mpi`, but virtuals are not included as
@@ -57,7 +59,7 @@ def get_dependents(pkg_name, ideps, transitive=False, dependents=None):
     Args:
         pkg_name (str): name of the package whose dependents should be returned
         ideps (dict): dictionary of dependents, from inverted_dependencies()
-        transitive (bool, optional): return transitive dependents when True
+        transitive (bool or None): return transitive dependents when True
     """
     if dependents is None:
         dependents = set()
@@ -80,11 +82,12 @@ def dependents(parser, args):
         tty.die("spack dependents takes only one spec.")
 
     if args.installed:
-        env = ev.get_env(args, 'dependents')
+        env = ev.active_environment()
         spec = spack.cmd.disambiguate_spec(specs[0], env)
 
         format_string = '{name}{@version}{%compiler}{/hash:7}'
-        tty.msg("Dependents of %s" % spec.cformat(format_string))
+        if sys.stdout.isatty():
+            tty.msg("Dependents of %s" % spec.cformat(format_string))
         deps = spack.store.db.installed_relatives(
             spec, 'parents', args.transitive)
         if deps:

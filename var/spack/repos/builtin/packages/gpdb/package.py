@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,7 @@ class Gpdb(AutotoolsPackage):
     version('5.23.0',    sha256='b06a797eb941362d5473b84d5def349b5ce12ce87ab116bea7c74ad193738ae9')
 
     depends_on('zstd')
+    depends_on('py-setuptools@:44')
     depends_on('apr')
     depends_on('libevent')
     depends_on('curl')
@@ -35,7 +36,17 @@ class Gpdb(AutotoolsPackage):
     depends_on('libxml2')
     depends_on('flex')
     depends_on('readline')
+    depends_on('py-subprocess32', type=('build', 'run'))
+    depends_on('python@:2.8.0', type=('build', 'run'))
+    depends_on('py-lockfile', type=('build', 'run'))
+    depends_on('py-psutil', type=('build', 'run'))
+    depends_on('py-utils@:1.0.0', type=('build', 'run'))
 
     def configure_args(self):
-        args = ['--disable-orca']
+        args = ['--with-python', '--disable-orca', '--enable-depend',
+                '--with-libxml']
         return args
+
+    def setup_run_environment(self, env):
+        env.append_path('GPHOME', self.prefix)
+        env.append_path('PYTHONPATH', self.prefix.lib.python)

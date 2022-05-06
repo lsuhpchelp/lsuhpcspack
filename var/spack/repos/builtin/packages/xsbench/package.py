@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,18 +28,28 @@ class Xsbench(MakefilePackage):
 
     depends_on('mpi', when='+mpi')
 
-    build_directory = 'src'
+    @property
+    def build_directory(self):
+        if self.spec.satisfies('@:18'):
+            return 'src'
+        else:
+            return 'openmp-threading'
 
     @property
     def build_targets(self):
 
         targets = []
+        cflags = ''
 
-        cflags = '-std=gnu99'
+        if not self.spec.satisfies('%nvhpc@:20.11'):
+            cflags = '-std=gnu99'
+
         if '+mpi' in self.spec:
             targets.append('CC={0}'.format(self.spec['mpi'].mpicc))
+            targets.append('MPI=yes')
         else:
-            targets.append('CC={0}'.format(self.compiler.cxx))
+            targets.append('CC={0}'.format(self.compiler.cc))
+            targets.append('MPI=no')
 
         if '+openmp' in self.spec:
             cflags += ' ' + self.compiler.openmp_flag
@@ -50,4 +60,5 @@ class Xsbench(MakefilePackage):
 
     def install(self, spec, prefix):
         mkdir(prefix.bin)
-        install('src/XSBench', prefix.bin)
+        with working_dir(self.build_directory):
+            install('XSBench', prefix.bin)

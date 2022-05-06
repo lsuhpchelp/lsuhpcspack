@@ -1,18 +1,17 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
 
-import llnl.util.tty as tty
-
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.find
 import spack.environment as ev
-import spack.util.environment
-import spack.user_environment as uenv
 import spack.store
+import spack.user_environment as uenv
+import spack.util.environment
 
 description = "add package to the user environment"
 section = "user environment"
@@ -22,8 +21,7 @@ level = "short"
 def setup_parser(subparser):
     """Parser is only constructed so that this prints a nice help
        message with -h. """
-    arguments.add_common_arguments(
-        subparser, ['recurse_dependencies', 'installed_specs'])
+    arguments.add_common_arguments(subparser, ['constraint'])
 
     shells = subparser.add_mutually_exclusive_group()
     shells.add_argument(
@@ -32,6 +30,17 @@ def setup_parser(subparser):
     shells.add_argument(
         '--csh', action='store_const', dest='shell', const='csh',
         help="print csh commands to load the package")
+    shells.add_argument(
+        '--fish', action='store_const', dest='shell', const='fish',
+        help="print fish commands to load the package")
+
+    subparser.add_argument(
+        '--first',
+        action='store_true',
+        default=False,
+        dest='load_first',
+        help="load the first match if multiple packages match the spec"
+    )
 
     subparser.add_argument(
         '--only',
@@ -44,24 +53,33 @@ alternatively one can decide to load only the package or only
 the dependencies"""
     )
 
+    subparser.add_argument(
+        '--list',
+        action='store_true',
+        default=False,
+        help="show loaded packages: same as `spack find --loaded`"
+    )
+
 
 def load(parser, args):
-    env = ev.get_env(args, 'load')
-    specs = [spack.cmd.disambiguate_spec(spec, env)
-             for spec in spack.cmd.parse_specs(args.specs)]
+    env = ev.active_environment()
+
+    if args.list:
+        results = spack.cmd.filter_loaded_specs(args.specs())
+        if sys.stdout.isatty():
+            spack.cmd.print_how_many_pkgs(results, "loaded")
+        spack.cmd.display_specs(results)
+        return
+
+    specs = [spack.cmd.disambiguate_spec(spec, env, first=args.load_first)
+             for spec in spack.cmd.parse_specs(args.constraint)]
 
     if not args.shell:
-        msg = [
-            "This command works best with Spack's shell support",
-            ""
-        ] + spack.cmd.common.shell_init_instructions + [
-            'Or, if you want to use `spack load` without initializing',
-            'shell support, you can run one of these:',
-            '',
-            '    eval `spack load --sh %s`   # for bash/sh' % args.specs,
-            '    eval `spack load --csh %s`  # for csh/tcsh' % args.specs,
-        ]
-        tty.msg(*msg)
+        specs_str = ' '.join(args.constraint) or "SPECS"
+        spack.cmd.common.shell_init_instructions(
+            "spack load",
+            "    eval `spack load {sh_arg} %s`" % specs_str,
+        )
         return 1
 
     with spack.store.db.read_transaction():

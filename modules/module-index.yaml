@@ -1,0 +1,10 @@
+module_index:
+  m7c4kmwjvwtvjsxttt75jny5rab6r7pw:
+    path: /home/lyan1/spack/modules/linux-rhel8-icelake/boost/1.77.0/gcc-8.5.0
+    use_name: boost/1.77.0/gcc-8.5.0
+  cbqhpfx33s3f6datffiwkyrosvnqiedj:
+    path: /home/lyan1/spack/modules/linux-rhel8-icelake/texinfo/6.5/gcc-8.5.0
+    use_name: texinfo/6.5/gcc-8.5.0
+  mn6gope7stw5ogxmlpypjveckbbthhhq:
+    path: /home/lyan1/spack/modules/linux-rhel8-icelake/mvapich2/2.3.6/intel-2021.5.0
+    use_name: mvapich2/2.3.6/intel-2021.5.0

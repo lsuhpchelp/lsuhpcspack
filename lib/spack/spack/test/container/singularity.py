@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,7 @@ def singularity_configuration(minimal_configuration):
     return minimal_configuration
 
 
-def test_ensure_render_works(singularity_configuration):
+def test_ensure_render_works(default_config, singularity_configuration):
     container_config = singularity_configuration['spack']['container']
     assert container_config['format'] == 'singularity'
     # Here we just want to ensure that nothing is raised

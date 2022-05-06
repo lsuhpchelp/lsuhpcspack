@@ -1,18 +1,22 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import llnl.util.tty as tty
+
 from spack import *
 
 
-class Octopus(Package):
+class Octopus(Package, CudaPackage):
     """A real-space finite-difference (time-dependent) density-functional
     theory code."""
 
     homepage = "https://octopus-code.org/"
     url      = "http://octopus-code.org/down.php?file=6.0/octopus-6.0.tar.gz"
 
+    version('10.5',  sha256='deb92e3491b0c6ac5736960d075b44cab466f528b69715ed44968ecfe2953ec4')
+    version('10.0',  sha256='ccf62200e3f37911bfff6d127ebe74220996e9c09383a10b1420c81d931dcf23')
     version('7.3',   sha256='ad843d49d4beeed63e8b9a2ca6bfb2f4c5a421f13a4f66dc7b02f6d6a5c4d742')
     version('6.0',   sha256='4a802ee86c1e06846aa7fa317bd2216c6170871632c9e03d020d7970a08a8198')
     version('5.0.1', sha256='3423049729e03f25512b1b315d9d62691cd0a6bd2722c7373a61d51bfbee14e0')
@@ -31,9 +35,13 @@ class Octopus(Package):
     depends_on('blas')
     depends_on('gsl@1.9:')
     depends_on('lapack')
-    depends_on('libxc')
+    depends_on('libxc@2.0:2', when='@:5')
+    depends_on('libxc@2.0:3', when='@6:7')
+    depends_on('libxc@2.0:4', when='@8:9')
+    depends_on('libxc@3:5.0.0', when='@10:')
     depends_on('mpi')
-    depends_on('fftw@3:+mpi+openmp')
+    depends_on('fftw@3:+mpi+openmp', when='@8:9')
+    depends_on('fftw-api@3:', when='@10:')
     depends_on('metis@5:', when='+metis')
     depends_on('parmetis', when='+parmetis')
     depends_on('scalapack', when='+scalapack')
@@ -57,8 +65,25 @@ class Octopus(Package):
             'CC=%s' % spec['mpi'].mpicc,
             'FC=%s' % spec['mpi'].mpifc,
             '--enable-mpi',
-            '--with-fftw-prefix==%s' % spec['fftw'].prefix,
         ])
+        if '^fftw' in spec:
+            args.extend([
+                '--with-fftw-prefix=%s' % spec['fftw'].prefix,
+            ])
+        elif '^mkl' in spec:
+            # As of version 10.0, Octopus depends on fftw-api instead
+            # of FFTW. If FFTW is not in the dependency tree, then
+            # it ought to be MKL as it is currently the only providers
+            # available for fftw-api.
+            args.extend([
+                'FCFLAGS_FFTW=-I%s' % spec['mkl'].prefix.include.fftw
+            ])
+        else:
+            # To be foolproof, fail with a proper error message
+            # if neither FFTW nor MKL are in the dependency tree.
+            tty.die('Unsupported "fftw-api" provider, '
+                    'currently only FFTW and MKL are supported.\n'
+                    "Please report this issue on Spack's repository.")
         if '+metis' in spec:
             args.extend([
                 '--with-metis-prefix=%s' % spec['metis'].prefix,
@@ -89,19 +114,26 @@ class Octopus(Package):
                 '--with-scalapack=%s' % spec['scalapack'].libs
             ])
 
-            # --with-etsf-io-prefix=
-            # --with-sparskit=${prefix}/lib/libskit.a
-            # --with-pfft-prefix=${prefix} --with-mpifftw-prefix=${prefix}
-            # --with-berkeleygw-prefix=${prefix}
+        if '+cuda' in spec:
+            args.extend([
+                '--enable-cuda'
+            ])
+
+        # --with-etsf-io-prefix=
+        # --with-sparskit=${prefix}/lib/libskit.a
+        # --with-pfft-prefix=${prefix} --with-mpifftw-prefix=${prefix}
+        # --with-berkeleygw-prefix=${prefix}
 
         # When preprocessor expands macros (i.e. CFLAGS) defined as quoted
         # strings the result may be > 132 chars and is terminated.
         # This will look to a compiler as an Unterminated character constant
-        # and produce Line truncated errors. To vercome this, add flags to
+        # and produce Line truncated errors. To overcome this, add flags to
         # let compiler know that the entire line is meaningful.
         # TODO: For the lack of better approach, assume that clang is mixed
         # with GNU fortran.
-        if spec.satisfies('%clang') or spec.satisfies('%gcc'):
+        if (spec.satisfies('%apple-clang') or
+                spec.satisfies('%clang') or
+                spec.satisfies('%gcc')):
             args.extend([
                 'FCFLAGS=-O2 -ffree-line-length-none'
             ])

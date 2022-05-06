@@ -1,11 +1,11 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack import *
 
 
-class SagaGis(AutotoolsPackage):
+class SagaGis(AutotoolsPackage, SourceforgePackage):
     """
     SAGA is a GIS for Automated Geoscientific Analyses and has been designed
     for an easy and effective implementation of spatial algorithms. It offers
@@ -13,7 +13,7 @@ class SagaGis(AutotoolsPackage):
     easily approachable user interface with many visualisation options
     """
     homepage    = "http://saga-gis.org/"
-    url         = "https://sourceforge.net/projects/saga-gis/files/SAGA%20-%205/SAGA%20-%205.0.0/saga-5.0.0.tar.gz"
+    sourceforge_mirror_path = "SAGA%20-%205.0.0/saga-5.0.0.tar.gz"
     git         = "git://git.code.sf.net/p/saga-gis/code"
 
     version('develop',  branch='master')
@@ -56,6 +56,7 @@ class SagaGis(AutotoolsPackage):
     depends_on('automake', type='build')
     depends_on('libtool',  type='build')
     depends_on('m4',       type='build')
+    depends_on('libsm',    type='link')
 
     depends_on('libharu')
     depends_on('wxwidgets')
@@ -65,7 +66,7 @@ class SagaGis(AutotoolsPackage):
     # SAGA-GIS requires projects.h from proj
     depends_on('proj')
     # https://sourceforge.net/p/saga-gis/bugs/271/
-    depends_on('proj@:5', when='@:7.2.999')
+    depends_on('proj@:5', when='@:7.2')
 
     # Saga-Gis depends on legacy opencv API removed in opencv 4.x
     depends_on('opencv@:3', when='+opencv')
@@ -77,8 +78,8 @@ class SagaGis(AutotoolsPackage):
     # write support for grib2 is available since 2.3.0 (https://gdal.org/drivers/raster/grib.html)
     depends_on('gdal@2.3:+grib+hdf5+netcdf')
 
-    depends_on('gdal@2.3:2.4+grib+hdf5+netcdf', when='@:7.2.999')
-    depends_on('libgeotiff@:1.4', when='@:7.2.999')
+    depends_on('gdal@2.3:2.4+grib+hdf5+netcdf', when='@:7.2')
+    depends_on('libgeotiff@:1.4', when='@:7.2')
 
     # FIXME Saga-Gis uses a wrong include path
     # depends_on('qhull', when='~triangle')

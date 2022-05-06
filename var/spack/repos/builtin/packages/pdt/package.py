@@ -1,9 +1,10 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+
 from spack import *
 
 
@@ -16,8 +17,11 @@ class Pdt(AutotoolsPackage):
        through a class library supporting common PDB operations.
 
     """
+    maintainers = ['wspear', 'eugeneswalker', 'khuck', 'sameershende']
     homepage = "https://www.cs.uoregon.edu/research/pdt/home.php"
-    url      = "http://www.cs.uoregon.edu/research/paracomp/pdtoolkit/Download/pdtoolkit-3.25.1.tar.gz"
+    url      = "https://www.cs.uoregon.edu/research/paracomp/pdtoolkit/Download/pdtoolkit-3.25.1.tar.gz"
+
+    tags = ['e4s']
 
     version('3.25.1', sha256='0b6f8a6b8769c181b2ae6cae7298f04b8e3e3d68066f598ed24574e19500bc97')
     version('3.25', sha256='1037628d854edfeded3d847150d3e8fbd3774e8146407ce32f5021c80f6299be')
@@ -30,8 +34,13 @@ class Pdt(AutotoolsPackage):
     version('3.19',   sha256='d57234077e2e999f2acf9860ea84369a4694b50cc17fa6728e5255dc5f4a2160')
     version('3.18.1', sha256='d06c2d1793fadebf169752511e5046d7e02cf3fead6135a35c34b1fee6d6d3b2')
 
+    variant('pic', default=False, description="Builds with pic")
+
+    patch('cray_configure.patch', when='%cce')
+
     def patch(self):
-        if self.spec.satisfies('%clang'):
+        spec = self.spec
+        if spec.satisfies('%clang') or spec.satisfies('%apple-clang'):
             filter_file(r'PDT_GXX=g\+\+ ',
                         r'PDT_GXX=clang++ ', 'ductape/Makefile')
 
@@ -39,7 +48,7 @@ class Pdt(AutotoolsPackage):
         options = ['-prefix=%s' % prefix]
         if self.compiler.name == 'xl':
             options.append('-XLC')
-        elif self.compiler.name == 'intel':
+        elif self.compiler.name == 'intel' or self.compiler.name == 'oneapi':
             options.append('-icpc')
         elif self.compiler.name == 'pgi':
             options.append('-pgCC')
@@ -47,8 +56,13 @@ class Pdt(AutotoolsPackage):
             options.append('-GNU')
         elif self.compiler.name == 'clang':
             options.append('-clang')
+        elif self.compiler.name == 'cce':
+            options.append('-CC')
         else:
             raise InstallError('Unknown/unsupported compiler family')
+
+        if '+pic' in spec:
+            options.append('-useropt=' + self.compiler.cxx_pic_flag)
 
         configure(*options)
 

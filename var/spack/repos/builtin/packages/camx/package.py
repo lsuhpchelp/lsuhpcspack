@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,7 @@ from spack import *
 class Camx(MakefilePackage):
     '''Comprehensive Air Quality Model with Extensions.'''
 
-    homepage = 'http://www.camx.com'
+    homepage = 'https://www.camx.com'
     # Upstream obfuscates their download URL to get you to fill out their
     # registration form and accept their license agreement.
 
@@ -60,6 +60,10 @@ class Camx(MakefilePackage):
 
     def edit(self, spec, prefix):
         makefile = FileFilter('Makefile')
+        if spec.target.family == 'aarch64':
+            makefile.filter('-mcmodel=medium', '-mcmodel=large')
+            makefile = FileFilter('./MPI/util/Makefile')
+            makefile.filter('-mcmodel=medium', '-mcmodel=large')
 
         # Support Intel MPI.
         if spec['mpi'].name == 'intel-mpi':

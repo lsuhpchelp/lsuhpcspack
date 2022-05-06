@@ -1,0 +1,12 @@
+if [ "$(whoami)" != "root" ]
+then
+  #For Modules
+  export MODULEPATH=./modules/linux-rhel8-icelake
+  #For Spack
+  . ./share/spack/setup-env.sh
+else
+  #For Modules
+  export MODULEPATH=/usr/local/packages/Modules/modulefiles/linux-rhel8-icelake
+  #For Spack
+  . /usr/local/packages/spack/share/spack/setup-env.sh
+fi

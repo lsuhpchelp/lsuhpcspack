@@ -1,10 +1,11 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import inspect
+
+from spack import *
 
 
 class PerlBioperl(PerlPackage):
@@ -27,7 +28,7 @@ class PerlBioperl(PerlPackage):
     The intent of the BioPerl development effort is to make reusable tools that
     aid people in creating their own sites or job-specific applications.
 
-    The BioPerl website at http://bioperl.org also attempts to maintain links
+    The BioPerl website at https://bioperl.org/ also attempts to maintain links
     and archives of standalone bio-related Perl tools that are not affiliated
     or related to the core BioPerl effort. Check the site for useful code ideas
     and contribute your own if possible."""
@@ -38,7 +39,8 @@ class PerlBioperl(PerlPackage):
     version('1.7.6',
             sha256='df2a3efc991b9b5d7cc9d038a1452c6dac910c9ad2a0e47e408dd692c111688d',
             preferred=True)
-    version('1.007002', sha256='17aa3aaab2f381bbcaffdc370002eaf28f2c341b538068d6586b2276a76464a1')
+    version('1.007002', sha256='17aa3aaab2f381bbcaffdc370002eaf28f2c341b538068d6586b2276a76464a1',
+            url='https://cpan.metacpan.org/authors/id/C/CJ/CJFIELDS/BioPerl-1.007002.tar.gz')
 
     # According to cpandeps.grinnz.com Module-Build is both a build and run
     # time dependency for BioPerl
@@ -67,7 +69,7 @@ class PerlBioperl(PerlPackage):
     depends_on('perl-libwww-perl', when='@1.7.6:', type=('build', 'run'))
     depends_on('perl-libxml-perl', when='@1.7.6:', type=('build', 'run'))
 
-    @when('@1.7.2')
+    @when('@1.007002')
     def configure(self, spec, prefix):
         # Overriding default configure method in order to cater to interactive
         # Build.pl
@@ -102,10 +104,10 @@ class PerlBioperl(PerlPackage):
     # Build script is run through perl and not use the shebang, as it might be
     # too long. This is needed because this does not pick up the
     # `@run_after(configure)` step defined in `PerlPackage`.
-    @when('@1.7.2')
+    @when('@1.007002')
     def build(self, spec, prefix):
         inspect.getmodule(self).perl('Build')
 
-    @when('@1.7.2')
+    @when('@1.007002')
     def install(self, spec, prefix):
         inspect.getmodule(self).perl('Build', 'install')

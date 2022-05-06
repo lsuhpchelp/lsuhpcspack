@@ -1,9 +1,10 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
+
 from llnl.util.tty.color import colorize
 
 description = "get help on spack and its commands"
@@ -35,6 +36,10 @@ spec expression syntax:
       @g{%compiler@version}             build with specific compiler version
       @g{%compiler@min:max}             specific version range (see above)
 
+    compiler flags:
+      @g{cflags="flags"}                cppflags, cflags, cxxflags,
+                                    fflags, ldflags, ldlibs
+
     variants:
       @B{+variant}                      enable <variant>
       @r{-variant} or @r{~variant}          disable <variant>
@@ -42,7 +47,7 @@ spec expression syntax:
       @B{variant=value1,value2,value3}  set multi-value <variant> values
 
     architecture variants:
-      @m{platform=platform}             linux, darwin, cray, bgq, etc.
+      @m{platform=platform}             linux, darwin, cray, etc.
       @m{os=operating_system}           specific <operating_system>
       @m{target=target}                 specific <target> processor
       @m{arch=platform-os-target}       shortcut for all three above

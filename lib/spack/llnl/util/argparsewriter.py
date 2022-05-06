@@ -1,13 +1,13 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from __future__ import print_function
 
-import re
 import argparse
 import errno
+import re
 import sys
 
 from six import StringIO
@@ -45,18 +45,18 @@ class Command(object):
 class ArgparseWriter(argparse.HelpFormatter):
     """Analyzes an argparse ArgumentParser for easy generation of help."""
 
-    def __init__(self, prog, out=sys.stdout, aliases=False):
+    def __init__(self, prog, out=None, aliases=False):
         """Initializes a new ArgparseWriter instance.
 
         Parameters:
             prog (str): the program name
-            out (file object): the file to write to
+            out (file object): the file to write to (default sys.stdout)
             aliases (bool): whether or not to include subparsers for aliases
         """
         super(ArgparseWriter, self).__init__(prog)
         self.level = 0
         self.prog = prog
-        self.out = out
+        self.out = sys.stdout if out is None else out
         self.aliases = aliases
 
     def parse(self, parser, prog):
@@ -167,7 +167,7 @@ _rst_levels = ['=', '-', '^', '~', ':', '`']
 class ArgparseRstWriter(ArgparseWriter):
     """Write argparse output as rst sections."""
 
-    def __init__(self, prog, out=sys.stdout, aliases=False,
+    def __init__(self, prog, out=None, aliases=False,
                  rst_levels=_rst_levels):
         """Create a new ArgparseRstWriter.
 
@@ -178,6 +178,7 @@ class ArgparseRstWriter(ArgparseWriter):
             rst_levels (list of str): list of characters
                 for rst section headings
         """
+        out = sys.stdout if out is None else out
         super(ArgparseRstWriter, self).__init__(prog, out, aliases)
         self.rst_levels = rst_levels
 
@@ -325,7 +326,7 @@ class ArgparseCompletionWriter(ArgparseWriter):
         """Returns the syntax needed to end a function definition.
 
         Parameters:
-            prog (str, optional): the command name
+            prog (str or None): the command name
 
         Returns:
             str: the function definition ending

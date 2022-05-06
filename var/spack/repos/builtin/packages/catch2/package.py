@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,8 +12,34 @@ class Catch2(CMakePackage):
 
     homepage = "https://github.com/catchorg/Catch2"
     url      = "https://github.com/catchorg/Catch2/archive/v2.9.1.tar.gz"
-    maintainers = ['ax3l']
+    git      = "https://github.com/catchorg/Catch2.git"
+    maintainers = ["ax3l", "AndrewGaspar"]
 
+    # In-Development
+    version('develop', branch='devel')
+
+    # Releases
+    version('3.0.0-preview3', sha256='06a4f903858f21c553e988f8b76c9c6915d1f95f95512d6a58c421e02a2c4975')
+    version('2.13.7',         sha256='3cdb4138a072e4c0290034fe22d9f0a80d3bcfb8d7a8a5c49ad75d3a5da24fae', preferred=True)
+    version('2.13.6',         sha256='48dfbb77b9193653e4e72df9633d2e0383b9b625a47060759668480fdf24fbd4')
+    version('2.13.5',         sha256='7fee7d643599d10680bfd482799709f14ed282a8b7db82f54ec75ec9af32fa76')
+    version('2.13.4',         sha256='e7eb70b3d0ac2ed7dcf14563ad808740c29e628edde99e973adad373a2b5e4df')
+    version('2.13.3',         sha256='fedc5b008f7eb574f45098e7c7138211c543f0f8ad04792090e790511697a877')
+    version('2.13.2',         sha256='5e39d9199f4f174dc3c8896fb4cf0a2ce9b9c358ae759b87fade6d615ca2d27e')
+    version('2.13.1',         sha256='36bcc9e6190923961be11e589d747e606515de95f10779e29853cfeae560bd6c')
+    version('2.13.0',         sha256='4e6608d3fb0247e2aa988735bae2064381b0ec712f47beb766dd761838a546b6')
+    version('2.12.4',         sha256='5436725bbc6ee131a0bc9545bef31f0adabbb21fbc39fb6f1b2a42c12e4f8107')
+    version('2.12.3', sha256='78425e7055cea5bad1ff8db7ea0d6dfc0722ece156be1ccf3597c15e674e6943')
+    version('2.12.1', sha256='e5635c082282ea518a8dd7ee89796c8026af8ea9068cd7402fb1615deacd91c3')
+    version('2.12.0', sha256='6606b754363d3a4521bfecf717dc1972c50dca282bd428dfb1370ec8b9c26918')
+    version('2.11.3', sha256='9a6967138062688f04374698fce4ce65908f907d8c0fe5dfe8dc33126bd46543')
+    version('2.11.2', sha256='a96203fa531092375678ad2d81c43317ee58c684787f24b2a55748f6c6839799')
+    version('2.11.1', sha256='9af06ca5b10362620c6c9c729821367e1aeb0f76adfc7bc3a468da83db3c50c6')
+    version('2.11.0', sha256='b9957af46a04327d80833960ae51cf5e67765fd264389bd1e275294907f1a3e0')
+    version('2.10.2', sha256='79aa46ee6c5a87bc5306bfffc6ecde6a1ad6327715b208ee2e846873f282a494')
+    version('2.10.1', sha256='dcbbe0a5f4d2a4330bdf5bcb9ef6a02303d679d46596e4ed06ca462f2372d4de')
+    version('2.10.0', sha256='a3beaa8ba6238c189e1f81238ab38e585836af13204a7099e22eff6c25b98558')
+    version('2.9.2',  sha256='54bea6d80a388a80f895cd0e2343fca72b0d9093a776af40904aefce49c13bda')
     version('2.9.1', sha256='0b36488aca6265e7be14da2c2d0c748b4ddb9c70a1ea4da75736699c629f14ac')
     version('2.9.0', sha256='00040cad9b6d6bb817ebd5853ff6dda23f9957153d8c4eedf85def0c9e787c42')
     version('2.8.0', sha256='b567c37446cd22c8550bfeb7e2fe3f981b8f3ab8b2148499a522e7f61b8a481d')
@@ -70,19 +96,18 @@ class Catch2(CMakePackage):
             args.append('-DNO_SELFTEST={0}'.format(
                 'OFF' if self.run_tests else 'ON'))
         elif spec.satisfies('@2.1.1:'):
-            args.append('-DBUILD_TESTING:BOOL={0}'.format(
-                'ON' if self.run_tests else 'OFF'))
+            args.append(self.define('BUILD_TESTING', self.run_tests))
         return args
 
-    @when('@:1.6.99')
+    @when('@:1.6')
     def cmake(self, spec, prefix):
         pass
 
-    @when('@:1.6.99')
+    @when('@:1.6')
     def build(self, spec, prefix):
         pass
 
-    @when('@:1.6.99')
+    @when('@:1.6')
     def install(self, spec, prefix):
         mkdirp(prefix.include)
         install(join_path('single_include', 'catch.hpp'), prefix.include)

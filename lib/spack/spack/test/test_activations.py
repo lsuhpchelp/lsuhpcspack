@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,12 +8,14 @@
 """
 
 import os
+
 import pytest
 
-import spack.spec
-import spack.package
 from llnl.util.link_tree import MergeConflictError
-from spack.directory_layout import YamlDirectoryLayout
+
+import spack.package
+import spack.spec
+from spack.directory_layout import DirectoryLayout
 from spack.filesystem_view import YamlFilesystemView
 from spack.repo import RepoPath
 
@@ -54,7 +56,7 @@ def builtin_and_mock_packages():
     repo_dirs = [spack.paths.packages_path, spack.paths.mock_packages_path]
     path = RepoPath(*repo_dirs)
 
-    with spack.repo.swap(path):
+    with spack.repo.use_repositories(path):
         yield
 
 
@@ -187,7 +189,7 @@ def test_python_activation_view(tmpdir, python_and_extension_dirs,
                                     monkeypatch)
 
     view_dir = str(tmpdir.join('view'))
-    layout = YamlDirectoryLayout(view_dir)
+    layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
 
     python_pkg = python_spec.package
@@ -214,7 +216,7 @@ def test_python_ignore_namespace_init_conflict(
                                      monkeypatch, py_namespace)
 
     view_dir = str(tmpdir.join('view'))
-    layout = YamlDirectoryLayout(view_dir)
+    layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
 
     python_pkg = python_spec.package
@@ -249,7 +251,7 @@ def test_python_keep_namespace_init(
                                      monkeypatch, py_namespace)
 
     view_dir = str(tmpdir.join('view'))
-    layout = YamlDirectoryLayout(view_dir)
+    layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
 
     python_pkg = python_spec.package
@@ -292,7 +294,7 @@ def test_python_namespace_conflict(tmpdir, namespace_extensions,
                                      monkeypatch, other_namespace)
 
     view_dir = str(tmpdir.join('view'))
-    layout = YamlDirectoryLayout(view_dir)
+    layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
 
     python_pkg = python_spec.package
@@ -399,7 +401,7 @@ def test_perl_activation_view(tmpdir, perl_and_extension_dirs,
         'perl-extension', ext_prefix, perl_spec, monkeypatch)
 
     view_dir = str(tmpdir.join('view'))
-    layout = YamlDirectoryLayout(view_dir)
+    layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
 
     perl_pkg = perl_spec.package
@@ -408,3 +410,32 @@ def test_perl_activation_view(tmpdir, perl_and_extension_dirs,
     assert not os.path.exists(os.path.join(perl_prefix, 'bin/perl-ext-tool'))
 
     assert os.path.exists(os.path.join(view_dir, 'bin/perl-ext-tool'))
+
+
+def test_is_activated_upstream_extendee(tmpdir, builtin_and_mock_packages,
+                                        monkeypatch):
+    """When an extendee is installed upstream, make sure that the extension
+    spec is never considered to be globally activated for it.
+    """
+    extendee_spec = spack.spec.Spec('python')
+    extendee_spec._concrete = True
+
+    python_name = 'python'
+    tmpdir.ensure(python_name, dir=True)
+
+    python_prefix = str(tmpdir.join(python_name))
+    # Set the prefix on the package's spec reference because that is a copy of
+    # the original spec
+    extendee_spec.package.spec.prefix = python_prefix
+    monkeypatch.setattr(extendee_spec.package.__class__,
+                        'installed_upstream', True)
+
+    ext_name = 'py-extension1'
+    tmpdir.ensure(ext_name, dir=True)
+    ext_pkg = create_ext_pkg(
+        ext_name, str(tmpdir.join(ext_name)), extendee_spec, monkeypatch)
+
+    # The view should not be checked at all if the extendee is installed
+    # upstream, so use 'None' here
+    mock_view = None
+    assert not ext_pkg.is_activated(mock_view)
