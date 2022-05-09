@@ -1,0 +1,514 @@
+packages:
+  all:
+#    compiler: [intel@2021.5.0, oneapi@2022.0.0, gcc@8.5.0, nvhpc@22.3] 
+    compiler: [intel,oneapi,gcc,nvhpc]
+    target: [icelake]
+    providers:
+      awk: [gawk]
+      blas: [intel-mkl]
+      D: [ldc]
+      daal: [intel-daal]
+      elf: [elfutils]
+      fftw-api: [fftw, amdfftw]
+      flame: [libflame, amdlibflame]
+      fuse: [libfuse]
+      gl: [mesa+opengl, mesa18, opengl]
+      glu: [mesa-glu, openglu]
+      glx: [mesa+glx, mesa18+glx, opengl]
+      golang: [gcc]
+      iconv: [libiconv]
+      ipp: [intel-ipp]
+      java: [openjdk,jdk,ibm-java]
+      jpeg: [libjpeg-turbo, libjpeg]
+      lapack: [intel-mkl]
+      lua-lang: [lua, lua-luajit]
+      mariadb-client: [mariadb-c-client, mariadb]
+      mkl: [intel-oneapi-mkl]
+      mpe: [mpe2]
+      mpi: [intel-oneapi-mpi, mvapich2, intel-mpi, openmpi, mpich]
+      mysql-client: [mysql, mariadb-c-client]
+      opencl: [pocl]
+      onedal: [intel-oneapi-dal]
+      osmesa: [mesa+osmesa, mesa18+osmesa]
+      pbs: [openpbs, torque]
+      pil: [py-pillow]
+      pkgconfig: [pkgconf, pkg-config]
+      rpc: [libtirpc]
+      scalapack: [intel-mkl]
+      sycl: [hipsycl]
+      szip: [libaec, libszip]
+      tbb: [intel-tbb]
+      unwind: [libunwind]
+      uuid: [util-linux-uuid, libuuid]
+      xxd: [xxd-standalone, vim]
+      yacc: [bison, byacc]
+      ziglang: [zig]
+    permissions:
+      read: world
+      write: user
+  petsc:
+    variants: +fftw +mumps +suite-sparse
+  tau:
+    variants: +mpi +openmp +phase +comm +opari
+  fftw:
+    variants: +openmp
+  hdf5:
+    variants: +threadsafe +cxx +fortran
+  suite-sparse:
+    variants: +openmp
+  superlu-dist:
+    variants: +openmp
+  cp2k:
+    variants: ~libxc blas=mkl
+  scotch:
+    variants: +metis
+  hmmer:
+    variants: ~mpi
+  mpich:
+    variants: +verbs
+  openmpi:
+    variants: +thread_multiple fabrics=auto
+  r:
+    compiler: [gcc]
+    variants: +memory_profiling
+  raxml:
+    variants: +pthreads
+  boost:
+    compiler: [intel,gcc]
+    externals:
+    - spec: boost@1.66.0 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  readline:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: readline@7.0.10 arch=linux-rhel8-icelake
+      prefix: /usr
+  ncurses:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: ncurses@6.1.9 ~termlib arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  m4:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: m4@1.4.18 arch=linux-rhel8-icelake
+      prefix: /usr
+  autoconf:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: autoconf@2.69 arch=linux-rhel8-icelake
+      prefix: /usr
+  automake:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: automake@1.61.1 arch=linux-rhel8-icelake
+      prefix: /usr
+  binutils:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: binutils@2.30 ~nls +libiberty +headers arch=linux-rhel8-icelake
+      prefix: /usr
+  bzip2:
+    compiler: [intel,gcc]
+    externals:
+    - spec: bzip2@1.0.6 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  cairo:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: cairo@1.15.12 +pdf ~X +gobject arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  cmake:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: cmake@3.20.2
+      prefix: /usr/bin
+  findutils:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: findutils@4.6.0
+      prefix: /usr/bin
+  flex:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: flex@2.6.1 arch=linux-rhel8-icelake
+      prefix: /usr
+  freetype:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: freetype@2.9.1 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  gettext:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: gettext@0.19.8.1 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  gdbm:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: gdbm@1.18 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  glib:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: glib@2.56.4 arch=linux-rhel8-icelake
+      prefix: /usr
+      #  gmp:
+      #    compiler: [intel,gcc]
+      #    buildable: false
+      #    externals:
+      #    - spec: gmp@6.1.2 arch=linux-rhel8-icelake
+      #      prefix: /usr/lib64
+  gnutls:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: gnutls@3.6.16 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  hwloc:
+    compiler: [intel,gcc]
+    buildable: false
+    externals: 
+    - spec: hwloc@2.2.0 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  openjdk:
+    buildable: false
+    externals:
+    - spec: openjdk@1.8.0.302 arch=linux-rhel8-icelake
+      prefix: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.302.b08-3.el8.x86_64
+  libdwarf:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libdwarf@20130207 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libelf:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libelf@0.185 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libffi:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libffi@3.1.22 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libtirpc:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libtirpc@1.1.4 arch=linux-rhel8-icelake
+      prefix: /lib64
+  libtool:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libtool@2.4.6 arch=linux-rhel8-icelake
+      prefix: /usr
+  libpng:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libpng@1.6.34 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libjpeg-turbo:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libjpeg-turbo@1.5.3 arch=linux-rhel8-icelake
+      prefix: /usr
+  libtiff:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libtiff@4.0.9 arch=linux-rhel8-icelake
+      prefix: /usr
+  libxt:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libxt@1.1.5 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  lua:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: lua@5.3.4 arch=linux-rhel8-icelake
+      prefix: /usr
+  lz4:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: lz4@1.8.3 arch=linux-rhel8-icelake
+      prefix: /usr
+  lzo:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: lzo@2.08 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  mesa:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: mesa@21.1.5 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+      #  mpc:
+      #    compiler: [intel,gcc]
+      #    buildable: False
+      #    externals:
+      #    - spec:  mpc@1.1.0 arch=linux-rhel8-icelake 
+      #      prefix: /usr/lib64
+      #  mpfr:
+      #    compiler: [intel,gcc]
+      #    buildable: false
+      #    externals:
+      #    - spec: mpfr@3.1.6 arch=linux-rhel8-icelake
+      #      prefix: /usr/lib64
+  diffutils:
+    compiler: [intel,gcc]
+    buildable: False
+    externals:
+    - spec:  diffutils@3.6.6 arch=linux-rhel8-icelake
+      prefix: /usr
+  nettle:
+    buildable: false
+    externals:
+    - spec: nettle@3.4.1 arch=linux-rhel8-icelake
+      prefix: /usr
+  papi:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: papi@5.6.0 arch=linux-rhel8-icelake
+      prefix: /usr
+  pkgconf:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: pkgconf@1.4.2 arch=linux-rhel8-icelake
+      prefix: /usr
+  bison:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: bison@3.0.4 arch=linux-rhel8-icelake
+      prefix: /usr
+  curl:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: curl@7.61.1 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  openssl:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: openssl@1.1.1k arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  pango:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: pango@1.42.4 arch=linux-rhel8-icelake
+      prefix: /usr
+  python:
+    buildable: false
+    externals:
+            #- spec: python@2.7.5 arch=linux-rhel8-icelake
+            #  prefix: /usr
+    - spec: python@3.6.8 arch=linux-rhel8-icelake
+      prefix: /usr
+  qt:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: qt@5.15.2 +opengl arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  rdma-core:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: rdma-core@34.0 arch=linux-rhel8-icelake
+      prefix: /usr
+  sqlite:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: sqlite@3.26.0 -fts arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  subversion:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: subversion@1.10.2 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  tar:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: tar@1.30.5 arch=linux-rhel8-icelake
+      prefix: /bin
+  tcl:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: tcl@8.6.8 arch=linux-rhel8-icelake
+      prefix: /usr
+  tcsh:
+    buildable: false
+    externals:
+    - spec: tcsh@6.20.00 arch=linux-rhel8-icelake
+      prefix: /bin
+  tk:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: tk@8.6.8 arch=linux-rhel8-icelake
+      prefix: /usr
+  zlib:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: zlib@1.2.11 arch=linux-rhel8-icelake
+      prefix: /usr
+  expat:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: expat@2.2.5 arch=linux-rhel8-icelake
+      prefix: /lib64
+  libarchive:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libarchive@3.3.3 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libedit:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libedit@3.1 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libevent:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libevent@2.1.8 arch=linux-rhel8-icelake
+      prefix: /usr/lib64/libevent-2.1.so.6
+  libnl3:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libnl3@3.5.0
+      prefix: /usr/lib64
+  libpciaccess:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libpciaccess@0.14 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libunistring:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libunistring@0.9.9 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  libxml2:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: libxml2@2.9.7 arch=linux-rhel8-icelake
+      prefix: /usr
+  numactl:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: numactl@2.0.12 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  pkg-config:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: pkg-config@1.4.2 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  pcre:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: pcre@8.42 arch=linux-rhel8-icelake
+      prefix: /usr
+  pcre2:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: pcre2@10.32 arch=linux-rhel8-icelake
+      prefix: /usr/lib64
+  perl:
+    compiler: [intel,gcc]
+    externals:
+    - spec: perl@5.26.3 arch=linux-rhel8-icelake
+      prefix: /usr
+  xz:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: xz@5.2.4 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  zip:
+    buildable: false
+    externals:
+    - spec: zip@3.0 arch=linux-rhel8-icelake
+      prefix: /usr/bin
+  intel-mkl:
+    buildable: false
+    externals:
+    - spec: intel-mkl@2022.0.2 arch=linux-rhel8-icelake
+      prefix: /usr/local/packages/compilers/intel/mkl/2022.0.2
+  intel-tbb:
+    buildable: false
+    externals:
+    - spec: intel-tbb@2021.5.1 arch=linux-rhel8-icelake
+      prefix: /usr/local/packages/compilers/intel/tbb/2021.5.1
+  intel-oneapi-mpi:
+    compiler: [intel]
+    buildable: false
+    externals:
+    - spec: intel-oneapi-mpi@2021.5.1 arch=linux-rhel8-icelake
+      prefix: /usr/local/compilers/intel
+  intel-oneapi-mkl:
+    compiler: [intel]
+    buildable: false
+    externals:
+    - spec: intel-oneapi-mkl@2022.0.2 arch=linux-rhel8-icelake
+      prefix: /usr/local/compilers/intel
+  netlib-scalapack:
+    buildable: false
+  openblas:
+    buildable: false
+  openssh:
+    compiler: [intel,gcc]
+    buildable: false
+    externals:
+    - spec: openssh@8.0p1 arch=linux-rhel8-icelake
+      prefix: /usr
+  slurm:
+    buildable: false
+    externals:
+    - spec: slurm@21.08.7 arch=linux-rhel8-icelake
+      prefix: /usr

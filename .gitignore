@@ -12,6 +12,10 @@
 # Ignore everything in /etc/spack except /etc/spack/defaults
 /etc/spack/*
 !/etc/spack/defaults
+!/etc/spack/packages.yaml
+!/etc/spack/modules.yaml
+!/etc/spack/compilers.yaml
+!/etc/spack/config.yaml
 /etc/spackconfig
 /share/spack/dotkit
 /share/spack/modules

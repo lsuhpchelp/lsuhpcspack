@@ -1,0 +1,148 @@
+modules:
+  # Paths to check when creating modules for all module sets
+  prefix_inspections:
+    bin:
+    - PATH
+    man:
+    - MANPATH
+    share/man:
+    - MANPATH
+    share/aclocal:
+    - ACLOCAL_PATH
+    lib/pkgconfig:
+    - PKG_CONFIG_PATH
+    lib64/pkgconfig:
+    - PKG_CONFIG_PATH
+    share/pkgconfig:
+    - PKG_CONFIG_PATH
+    ? ''
+    : - CMAKE_PREFIX_PATH
+
+  # These are configurations for the module set named "default"
+  default:
+    # These values are defaulted in the code. They are not defaulted here so
+    # that we can enable backwards compatibility with the old syntax more
+    # easily (old value is in the config yaml, config:module_roots)
+    # Where to install modules
+    # roots:
+    #  tcl:    $spack/share/spack/modules
+    #  lmod:   $spack/share/spack/lmod
+    # What type of modules to use
+    enable:
+    - tcl
+    lmod:
+      core_compilers:
+      - gcc@8.5.0
+  tcl:
+    verbose: true
+    hash_length: 0
+    naming_scheme: '{name}/{version}/{compiler.name}-{compiler.version}'
+    whitelist:
+    - gcc
+    blacklist:
+            #    - '%gcc@8.5.0'
+    - autoconf-archive
+    - readline
+    - ncurses
+    - m4
+    - binutils
+    - cairo
+    - charmpp
+    - elpa
+    - freetype
+    - gdbm
+    - gettext
+    - gnutls
+    - glib
+    - htslib
+    - autoconf
+    - automake
+    - bzip2
+    - icu4c
+    - libtool
+    - bison
+    - curl
+    - diffutils
+    - openssl
+    - zlib
+    - intel-mkl
+    - intel-tbb
+    - libdwarf
+    - libedit
+    - libelf
+    - libevent
+    - libfabric
+    - libffi
+    - libiconv
+    - libint
+    - libjpeg
+    - libjpeg-turbo
+    - libpciaccess
+    - libpng
+    - libtiff
+    - libtirpc
+    - libunwind
+    - libxc
+    - libxt
+    - libxsmm
+    - lmdb
+    - numactl
+    - openssh
+    - otf2
+    - pango
+    - papi
+    - pcre
+    - pdt
+    - pkg-config
+    - qhull
+    - rdma-core
+    - slurm
+    - subversion
+    - expat
+    - libarchive
+    - libxml2
+    - libiconv
+    - libunistring
+    - sqlite
+    - tar
+    - tcsh
+    - tcl
+    - tk
+    - gmp
+    - mpfr
+    - isl
+    - mpc
+    - xz
+    - zip
+    - pkgconf
+    - findutils
+    - flex
+    - cgal
+    - libsodium
+    - libzmq
+    - sz
+    - zfp
+    - zstd
+    - perl@5.26.3 #os
+    - cmake@3.20.2 #os
+    - hwloc@2.2.0 #os
+    - texinfo
+    
+        #      - 'python@2.7.5'
+    - python@3.6.8 #os
+    - mesa@21.1.5 #os
+    - boost@1.66.0 #os
+    all:
+      autoload: direct
+      conflict:
+      - '{name}'
+      suffixes:
+        ^python@2.7.14: python-2.7.14
+        ^python@3.8.8: python-3.8.8
+        ^mvapich2@2.3.3: mvapich-2.3.3
+        ^intel-oneapi-mpi@2021.5.1: intel-mpi-2021.5.1
+        ^mpich@3.3.2: mpich-3.3.2
+        +debug: debug
+        +cuda: cuda
+        +kokkos: kokkos
+        process_managers=hydra: hydra
