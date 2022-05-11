@@ -47,7 +47,7 @@ packages:
       read: world
       write: user
   petsc:
-    variants: +fftw +mumps +suite-sparse
+    variants: +fftw +suite-sparse
   tau:
     variants: +mpi +openmp +phase +comm +opari
   fftw:
@@ -65,19 +65,23 @@ packages:
   hmmer:
     variants: ~mpi
   mpich:
-    variants: +verbs
+    variants: +verbs +slurm pmi=pmi2
+  mvapich2:
+    variants: threads=multiple process_managers=slurm
+  netcdf-c:
+    variants: +parallel-netcdf
   openmpi:
-    variants: +thread_multiple fabrics=auto
+    variants: +thread_multiple fabrics=auto schedulers=slurm
   r:
     compiler: [gcc]
     variants: +memory_profiling
   raxml:
     variants: +pthreads
-  boost:
-    compiler: [intel,gcc]
-    externals:
-    - spec: boost@1.66.0 arch=linux-rhel8-icelake
-      prefix: /usr/lib64
+    #  boost:
+    #    compiler: [intel,gcc]
+    #    externals:
+    #    - spec: boost@1.66.0 arch=linux-rhel8-icelake
+    #      prefix: /usr/lib64
   readline:
     compiler: [intel,gcc]
     buildable: false
@@ -405,12 +409,12 @@ packages:
     externals:
     - spec: libedit@3.1 arch=linux-rhel8-icelake
       prefix: /usr/lib64
-  libevent:
-    compiler: [intel,gcc]
-    buildable: false
-    externals:
-    - spec: libevent@2.1.8 arch=linux-rhel8-icelake
-      prefix: /usr/lib64/libevent-2.1.so.6
+      #  libevent:
+      #    compiler: [intel,gcc]
+      #    buildable: false
+      #    externals:
+      #    - spec: libevent@2.1.8 arch=linux-rhel8-icelake
+      #      prefix: /usr/lib64/libevent-2.1.so.6
   libnl3:
     compiler: [intel,gcc]
     buildable: false
