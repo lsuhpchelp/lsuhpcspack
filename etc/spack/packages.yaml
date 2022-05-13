@@ -1,7 +1,7 @@
 packages:
   all:
 #    compiler: [intel,oneapi,nvhpc@2021.5.0, oneapi@2022.0.0, gcc@8.5.0, nvhpc@22.3] 
-    compiler: [intel,oneapi,gcc,nvhpc]
+    compiler: [intel,oneapi,gcc@11.2.0,gcc@10.3.0,nvhpc]
     target: [icelake]
     providers:
       awk: [gawk]
