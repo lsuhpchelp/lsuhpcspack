@@ -72,6 +72,8 @@ packages:
     variants: +parallel-netcdf
   openmpi:
     variants: +thread_multiple fabrics=auto schedulers=slurm
+  quantum-espresso:
+    variants: +openmp -scalapack
   r:
     compiler: [gcc]
     variants: +memory_profiling
