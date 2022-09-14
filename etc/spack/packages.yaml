@@ -387,7 +387,7 @@ packages:
     compiler: [gcc,intel]
     paths:
       perl@5.16.3 arch=linux-rhel7-cascadelake: /usr
-#    buildable: False
+    buildable: False
   swig:
     compiler: [gcc,intel]
     paths:
@@ -430,5 +430,5 @@ packages:
     buildable: False
   slurm:
     paths:
-      slurm@19.05.0 arch=linux-rhel7-cascadelake: /usr/include
+      slurm@21.8.08 arch=linux-rhel7-cascadelake: /usr/include
     buildable: False
