@@ -26,6 +26,8 @@ class Boost(Package):
     maintainers = ['hainest']
 
     version('develop', branch='develop', submodules=True)
+    version("1.79.0", sha256="475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39")
+    version("1.78.0", sha256="8681f175d4bdb26c52222665793eef08490d7758529330f98d3b29dd0735bccc")
     version('1.77.0', sha256='fc9f85fc030e233142908241af7a846e60630aa7388de9a5fafb1f3a26840854')
     version('1.76.0', sha256='f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41')
     version('1.75.0', sha256='953db31e016db7bb207f11432bef7df100516eeb746843fa0486a222e3fd49cb')
@@ -308,6 +310,9 @@ class Boost(Package):
           sha256="93f4aad8f88d1437e50d95a2d066390ef3753b99ef5de24f7a46bc083bd6df06",
           when="@1.77.0",
           working_dir="tools/build")
+
+    # https://www.intel.com/content/www/us/en/developer/articles/technical/building-boost-with-oneapi.html
+    patch("intel-oneapi-linux-jam.patch", when="@1.76:1.79 %oneapi")
 
     def patch(self):
         # Disable SSSE3 and AVX2 when using the NVIDIA compiler
