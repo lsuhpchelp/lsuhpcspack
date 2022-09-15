@@ -389,12 +389,12 @@ packages:
     externals:
     - spec: tk@8.6.8 arch=linux-rhel8-icelake
       prefix: /usr
-  zlib:
-    compiler: [intel,oneapi,nvhpc,gcc]
-    buildable: false
-    externals:
-    - spec: zlib@1.2.11 arch=linux-rhel8-icelake
-      prefix: /usr
+#  zlib:
+#    compiler: [intel,oneapi,nvhpc,gcc]
+#    buildable: false
+#    externals:
+#    - spec: zlib@1.2.11 arch=linux-rhel8-icelake
+#      prefix: /usr
   expat:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
