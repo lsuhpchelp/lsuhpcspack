@@ -256,12 +256,12 @@ packages:
     externals:
     - spec: lua@5.3.4 arch=linux-rhel8-icelake
       prefix: /usr
-  lz4:
-    compiler: [intel,oneapi,nvhpc,gcc]
-    buildable: false
-    externals:
-    - spec: lz4@1.8.3 arch=linux-rhel8-icelake
-      prefix: /usr
+#  lz4:
+#    compiler: [intel,oneapi,nvhpc,gcc]
+#    buildable: true
+#    externals:
+#    - spec: lz4@1.8.3 arch=linux-rhel8-icelake
+#      prefix: /usr
   lzo:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
