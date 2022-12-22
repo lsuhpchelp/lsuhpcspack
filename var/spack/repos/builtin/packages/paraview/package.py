@@ -27,7 +27,9 @@ class Paraview(CMakePackage, CudaPackage):
     tags = ['e4s']
 
     version('master', branch='master', submodules=True)
-    version("5.10.1", sha256="520e3cdfba4f8592be477314c2f6c37ec73fb1d5b25ac30bdbd1c5214758b9c2", preferred=True)
+    #version("5.11.0-RC1", sha256="ef3443f18869b0bb915c36e4c7b1ad07e6e2085cced06f3926b349b04fa71f64", preferred=True)
+    version("5.11.0-RC1", sha256="892c4617b3f23f6e5c9a08ecc9b3e9f16b9e2f54c044155c3c252f00b0fbafd9", preferred=True)
+    version("5.10.1", sha256="520e3cdfba4f8592be477314c2f6c37ec73fb1d5b25ac30bdbd1c5214758b9c2")
     version('5.10.0-RC1', sha256='468d02962abfd5869c46f32fd9dee3095cb00264237edf2659f09a1c0990ec37')
     version('5.9.1', sha256='0d486cb6fbf55e428845c9650486f87466efcb3155e40489182a7ea85dfd4c8d')
     version('5.9.0', sha256='b03258b7cddb77f0ee142e3e77b377e5b1f503bcabc02bfa578298c99a06980d')

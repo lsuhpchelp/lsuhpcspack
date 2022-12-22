@@ -1,7 +1,7 @@
 if [ "$(whoami)" != "root" ]
 then
   #For Modules
-  export MODULEPATH=./modules/linux-rhel8-icelake
+  export MODULEPATH=./modules/linux-rhel8-icelake:$MODULEPATH
   #For Spack
   . ./share/spack/setup-env.sh
 else

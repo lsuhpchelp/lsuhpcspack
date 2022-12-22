@@ -16,9 +16,11 @@ class Mesa(MesonPackage):
     maintainers = ['chuckatkins', 'v-dobrev']
 
     git = "https://gitlab.freedesktop.org/mesa/mesa.git"
-    url = "https://archive.mesa3d.org/mesa-20.2.1.tar.xz"
+    #url = "https://archive.mesa3d.org/mesa-20.2.1.tar.xz"
+    url = "https://archive.mesa3d.org/mesa-22.1.2.tar.xz"
 
     version('master', tag='master')
+    version("22.1.2", sha256="df4fa560dcce6680133067cd15b0505fc424ca703244ce9ab247c74d2fab6885")
     version('21.2.3', sha256='7245284a159d2484770e1835a673e79e4322a9ddf43b17859668244946db7174')
     version('21.2.1', sha256='2c65e6710b419b67456a48beefd0be827b32db416772e0e363d5f7d54dc01787')
     version('21.0.3', sha256='565c6f4bd2d5747b919454fc1d439963024fc78ca56fd05158c3b2cde2f6912b')
