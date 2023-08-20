@@ -2,7 +2,7 @@ packages:
   all:
 #    compiler: [intel,oneapi,nvhpc@2021.5.0, oneapi@2022.0.0, gcc@8.5.0, nvhpc@22.3] 
     compiler: [intel,oneapi,gcc@11.2.0,gcc@10.3.0,nvhpc]
-    target: [icelake]
+    target: [cascadelake]
     providers:
       awk: [gawk]
       blas: [intel,oneapi,nvhpc-oneapi-mkl]
@@ -82,54 +82,54 @@ packages:
     #  boost:
     #    compiler: [intel,oneapi,nvhpc,gcc]
     #    externals:
-    #    - spec: boost@1.66.0 arch=linux-rhel8-icelake
+    #    - spec: boost@1.66.0 arch=linux-rhel8-cascadelake
     #      prefix: /usr/lib64
   readline:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: readline@7.0.10 arch=linux-rhel8-icelake
+    - spec: readline@7.0.10 arch=linux-rhel8-cascadelake
       prefix: /usr
   ncurses:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: ncurses@6.1.9 ~termlib arch=linux-rhel8-icelake
+    - spec: ncurses@6.1.9 ~termlib arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   m4:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: m4@1.4.18 arch=linux-rhel8-icelake
+    - spec: m4@1.4.18 arch=linux-rhel8-cascadelake
       prefix: /usr
   autoconf:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: autoconf@2.69 arch=linux-rhel8-icelake
+    - spec: autoconf@2.69 arch=linux-rhel8-cascadelake
       prefix: /usr
   automake:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: automake@1.61.1 arch=linux-rhel8-icelake
+    - spec: automake@1.61.1 arch=linux-rhel8-cascadelake
       prefix: /usr
   binutils:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: binutils@2.30 ~nls +libiberty +headers arch=linux-rhel8-icelake
+    - spec: binutils@2.30 ~nls +libiberty +headers arch=linux-rhel8-cascadelake
       prefix: /usr
   bzip2:
     compiler: [intel,oneapi,nvhpc,gcc]
     externals:
-    - spec: bzip2@1.0.6 arch=linux-rhel8-icelake
+    - spec: bzip2@1.0.6 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   cairo:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: cairo@1.15.12 +pdf ~X +gobject arch=linux-rhel8-icelake
+    - spec: cairo@1.15.12 +pdf ~X +gobject arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   cmake:
     compiler: [intel,oneapi,nvhpc,gcc]
@@ -147,277 +147,277 @@ packages:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: flex@2.6.1 arch=linux-rhel8-icelake
+    - spec: flex@2.6.1 arch=linux-rhel8-cascadelake
       prefix: /usr
   freetype:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: freetype@2.9.1 arch=linux-rhel8-icelake
+    - spec: freetype@2.9.1 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   gettext:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: gettext@0.19.8.1 arch=linux-rhel8-icelake
+    - spec: gettext@0.19.8.1 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   gdbm:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: gdbm@1.18 arch=linux-rhel8-icelake
+    - spec: gdbm@1.18 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   glib:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: glib@2.56.4 arch=linux-rhel8-icelake
+    - spec: glib@2.56.4 arch=linux-rhel8-cascadelake
       prefix: /usr
       #  gmp:
       #    compiler: [intel,oneapi,nvhpc,gcc]
       #    buildable: false
       #    externals:
-      #    - spec: gmp@6.1.2 arch=linux-rhel8-icelake
+      #    - spec: gmp@6.1.2 arch=linux-rhel8-cascadelake
       #      prefix: /usr/lib64
   gnutls:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: gnutls@3.6.16 arch=linux-rhel8-icelake
+    - spec: gnutls@3.6.16 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   hwloc:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals: 
-    - spec: hwloc@2.2.0 arch=linux-rhel8-icelake
+    - spec: hwloc@2.2.0 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   openjdk:
     buildable: false
     externals:
-    - spec: openjdk@1.8.0.302 arch=linux-rhel8-icelake
+    - spec: openjdk@1.8.0.302 arch=linux-rhel8-cascadelake
       prefix: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.302.b08-3.el8.x86_64
   libdwarf:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libdwarf@20130207 arch=linux-rhel8-icelake
+    - spec: libdwarf@20130207 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libelf:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libelf@0.185 arch=linux-rhel8-icelake
+    - spec: libelf@0.185 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libffi:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libffi@3.1.22 arch=linux-rhel8-icelake
+    - spec: libffi@3.1.22 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libtirpc:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libtirpc@1.1.4 arch=linux-rhel8-icelake
+    - spec: libtirpc@1.1.4 arch=linux-rhel8-cascadelake
       prefix: /lib64
   libtool:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libtool@2.4.6 arch=linux-rhel8-icelake
+    - spec: libtool@2.4.6 arch=linux-rhel8-cascadelake
       prefix: /usr
   libpng:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libpng@1.6.34 arch=linux-rhel8-icelake
+    - spec: libpng@1.6.34 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libjpeg-turbo:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libjpeg-turbo@1.5.3 arch=linux-rhel8-icelake
+    - spec: libjpeg-turbo@1.5.3 arch=linux-rhel8-cascadelake
       prefix: /usr
   libtiff:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libtiff@4.0.9 arch=linux-rhel8-icelake
+    - spec: libtiff@4.0.9 arch=linux-rhel8-cascadelake
       prefix: /usr
   libxt:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libxt@1.1.5 arch=linux-rhel8-icelake
+    - spec: libxt@1.1.5 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   lua:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: lua@5.3.4 arch=linux-rhel8-icelake
+    - spec: lua@5.3.4 arch=linux-rhel8-cascadelake
       prefix: /usr
 #  lz4:
 #    compiler: [intel,oneapi,nvhpc,gcc]
 #    buildable: true
 #    externals:
-#    - spec: lz4@1.8.3 arch=linux-rhel8-icelake
+#    - spec: lz4@1.8.3 arch=linux-rhel8-cascadelake
 #      prefix: /usr
   lzo:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: lzo@2.08 arch=linux-rhel8-icelake
+    - spec: lzo@2.08 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   mesa:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: mesa@21.1.5 arch=linux-rhel8-icelake
+    - spec: mesa@21.1.5 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
       #  mpc:
       #    compiler: [intel,oneapi,nvhpc,gcc]
       #    buildable: False
       #    externals:
-      #    - spec:  mpc@1.1.0 arch=linux-rhel8-icelake 
+      #    - spec:  mpc@1.1.0 arch=linux-rhel8-cascadelake 
       #      prefix: /usr/lib64
       #  mpfr:
       #    compiler: [intel,oneapi,nvhpc,gcc]
       #    buildable: false
       #    externals:
-      #    - spec: mpfr@3.1.6 arch=linux-rhel8-icelake
+      #    - spec: mpfr@3.1.6 arch=linux-rhel8-cascadelake
       #      prefix: /usr/lib64
   diffutils:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: False
     externals:
-    - spec:  diffutils@3.6.6 arch=linux-rhel8-icelake
+    - spec:  diffutils@3.6.6 arch=linux-rhel8-cascadelake
       prefix: /usr
   nettle:
     buildable: false
     externals:
-    - spec: nettle@3.4.1 arch=linux-rhel8-icelake
+    - spec: nettle@3.4.1 arch=linux-rhel8-cascadelake
       prefix: /usr
   papi:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: papi@5.6.0 arch=linux-rhel8-icelake
+    - spec: papi@5.6.0 arch=linux-rhel8-cascadelake
       prefix: /usr
   pkgconf:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: pkgconf@1.4.2 arch=linux-rhel8-icelake
+    - spec: pkgconf@1.4.2 arch=linux-rhel8-cascadelake
       prefix: /usr
   bison:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: bison@3.0.4 arch=linux-rhel8-icelake
+    - spec: bison@3.0.4 arch=linux-rhel8-cascadelake
       prefix: /usr
   curl:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: curl@7.61.1 arch=linux-rhel8-icelake
+    - spec: curl@7.61.1 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   openssl:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: openssl@1.1.1k arch=linux-rhel8-icelake
+    - spec: openssl@1.1.1k arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   pango:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: pango@1.42.4 arch=linux-rhel8-icelake
+    - spec: pango@1.42.4 arch=linux-rhel8-cascadelake
       prefix: /usr
   python:
     buildable: false
     externals:
-            #- spec: python@2.7.5 arch=linux-rhel8-icelake
+            #- spec: python@2.7.5 arch=linux-rhel8-cascadelake
             #  prefix: /usr
-    - spec: python@3.6.8 arch=linux-rhel8-icelake
+    - spec: python@3.6.8 arch=linux-rhel8-cascadelake
       prefix: /usr
-    - spec: python@3.9.7 arch=linux-rhel8-icelake
+    - spec: python@3.9.7 arch=linux-rhel8-cascadelake
       prefix: /usr/local/packages/python/3.9.7-anaconda
   qt:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: qt@5.15.2 +opengl arch=linux-rhel8-icelake
+    - spec: qt@5.15.2 +opengl arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   rdma-core:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: rdma-core@34.0 arch=linux-rhel8-icelake
+    - spec: rdma-core@34.0 arch=linux-rhel8-cascadelake
       prefix: /usr
   sqlite:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: sqlite@3.26.0 -fts arch=linux-rhel8-icelake
+    - spec: sqlite@3.26.0 -fts arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   subversion:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: subversion@1.10.2 arch=linux-rhel8-icelake
+    - spec: subversion@1.10.2 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   tar:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: tar@1.30.5 arch=linux-rhel8-icelake
+    - spec: tar@1.30.5 arch=linux-rhel8-cascadelake
       prefix: /bin
   tcl:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: tcl@8.6.8 arch=linux-rhel8-icelake
+    - spec: tcl@8.6.8 arch=linux-rhel8-cascadelake
       prefix: /usr
   tcsh:
     buildable: false
     externals:
-    - spec: tcsh@6.20.00 arch=linux-rhel8-icelake
+    - spec: tcsh@6.20.00 arch=linux-rhel8-cascadelake
       prefix: /bin
   tk:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: tk@8.6.8 arch=linux-rhel8-icelake
+    - spec: tk@8.6.8 arch=linux-rhel8-cascadelake
       prefix: /usr
 #  zlib:
 #    compiler: [intel,oneapi,nvhpc,gcc]
 #    buildable: false
 #    externals:
-#    - spec: zlib@1.2.11 arch=linux-rhel8-icelake
+#    - spec: zlib@1.2.11 arch=linux-rhel8-cascadelake
 #      prefix: /usr
   expat:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: expat@2.2.5 arch=linux-rhel8-icelake
+    - spec: expat@2.2.5 arch=linux-rhel8-cascadelake
       prefix: /lib64
   libarchive:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libarchive@3.3.3 arch=linux-rhel8-icelake
+    - spec: libarchive@3.3.3 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libedit:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libedit@3.1 arch=linux-rhel8-icelake
+    - spec: libedit@3.1 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
       #  libevent:
       #    compiler: [intel,oneapi,nvhpc,gcc]
       #    buildable: false
       #    externals:
-      #    - spec: libevent@2.1.8 arch=linux-rhel8-icelake
+      #    - spec: libevent@2.1.8 arch=linux-rhel8-cascadelake
       #      prefix: /usr/lib64/libevent-2.1.so.6
   libnl3:
     compiler: [intel,oneapi,nvhpc,gcc]
@@ -429,81 +429,81 @@ packages:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libpciaccess@0.14 arch=linux-rhel8-icelake
+    - spec: libpciaccess@0.14 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libunistring:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libunistring@0.9.9 arch=linux-rhel8-icelake
+    - spec: libunistring@0.9.9 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   libxml2:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: libxml2@2.9.7 arch=linux-rhel8-icelake
+    - spec: libxml2@2.9.7 arch=linux-rhel8-cascadelake
       prefix: /usr
   numactl:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: numactl@2.0.12 arch=linux-rhel8-icelake
+    - spec: numactl@2.0.12 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   pkg-config:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: pkg-config@1.4.2 arch=linux-rhel8-icelake
+    - spec: pkg-config@1.4.2 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   pcre:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: pcre@8.42 arch=linux-rhel8-icelake
+    - spec: pcre@8.42 arch=linux-rhel8-cascadelake
       prefix: /usr
   pcre2:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: pcre2@10.32 arch=linux-rhel8-icelake
+    - spec: pcre2@10.32 arch=linux-rhel8-cascadelake
       prefix: /usr/lib64
   perl:
     compiler: [intel,oneapi,nvhpc,gcc]
     externals:
-    - spec: perl@5.26.3 arch=linux-rhel8-icelake
+    - spec: perl@5.26.3 arch=linux-rhel8-cascadelake
       prefix: /usr
   xz:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: xz@5.2.4 arch=linux-rhel8-icelake
+    - spec: xz@5.2.4 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   zip:
     buildable: false
     externals:
-    - spec: zip@3.0 arch=linux-rhel8-icelake
+    - spec: zip@3.0 arch=linux-rhel8-cascadelake
       prefix: /usr/bin
   intel-mkl:
     buildable: false
     externals:
-    - spec: intel-mkl@2022.0.2 arch=linux-rhel8-icelake
+    - spec: intel-mkl@2022.0.2 arch=linux-rhel8-cascadelake
       prefix: /usr/local/packages/compilers/intel/mkl/2022.0.2
   intel-tbb:
     buildable: false
     externals:
-    - spec: intel-tbb@2021.5.1 arch=linux-rhel8-icelake
+    - spec: intel-tbb@2021.5.1 arch=linux-rhel8-cascadelake
       prefix: /usr/local/packages/compilers/intel/tbb/2021.5.1
   intel-oneapi-mpi:
     compiler: [intel,oneapi,nvhpc]
     buildable: false
     externals:
-    - spec: intel-oneapi-mpi@2021.5.1 arch=linux-rhel8-icelake
+    - spec: intel-oneapi-mpi@2021.5.1 arch=linux-rhel8-cascadelake
       prefix: /usr/local/compilers/intel
   intel-oneapi-mkl:
     compiler: [intel,oneapi,nvhpc]
     buildable: false
     externals:
-    - spec: intel-oneapi-mkl@2022.0.2 arch=linux-rhel8-icelake
+    - spec: intel-oneapi-mkl@2022.0.2 arch=linux-rhel8-cascadelake
       prefix: /usr/local/compilers/intel
   netlib-scalapack:
     buildable: false
@@ -513,10 +513,10 @@ packages:
     compiler: [intel,oneapi,nvhpc,gcc]
     buildable: false
     externals:
-    - spec: openssh@8.0p1 arch=linux-rhel8-icelake
+    - spec: openssh@8.0p1 arch=linux-rhel8-cascadelake
       prefix: /usr
   slurm:
     buildable: false
     externals:
-    - spec: slurm@21.08.7 arch=linux-rhel8-icelake
+    - spec: slurm@21.08.7 arch=linux-rhel8-cascadelake
       prefix: /usr
