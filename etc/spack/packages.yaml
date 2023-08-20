@@ -340,7 +340,7 @@ packages:
             #  prefix: /usr
     - spec: python@3.6.8 arch=linux-rhel8-icelake
       prefix: /usr
-    - spec: python@3.9.6 arch=linux-rhel8-icelake
+    - spec: python@3.9.7 arch=linux-rhel8-icelake
       prefix: /usr/local/packages/python/3.9.7-anaconda
   qt:
     compiler: [intel,oneapi,nvhpc,gcc]
