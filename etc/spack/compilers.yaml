@@ -12,3 +12,16 @@ compilers:
     modules: []
     environment: {}
     extra_rpaths: []
+- compiler:
+    spec: gcc@11.2.0
+    paths:
+      cc: /usr/local/packages/compilers/gcc/11.2.0/mtmvn7v/bin/gcc
+      cxx: /usr/local/packages/compilers/gcc/11.2.0/mtmvn7v/bin/g++
+      f77: /usr/local/packages/compilers/gcc/11.2.0/mtmvn7v/bin/gfortran
+      fc: /usr/local/packages/compilers/gcc/11.2.0/mtmvn7v/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
