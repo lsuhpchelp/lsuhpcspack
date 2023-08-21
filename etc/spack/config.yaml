@@ -20,8 +20,8 @@ config:
     root: /usr/local/packages
     projections:
       #all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
-      all: "${PACKAGE}/${VERSION}/${HASH:7}"
-      gcc: "compilers/${PACKAGE}/${VERSION}/${HASH:7}" 
+      all: "${ARCHITECTURE}/${PACKAGE}/${VERSION}/${HASH:7}"
+      gcc: "${ARCHITECTURE}/compilers/${PACKAGE}/${VERSION}/${HASH:7}" 
     # install_tree can include an optional padded length (int or boolean)
     # default is False (do not pad)
     # if padded_length is True, Spack will pad as close to the system max path
